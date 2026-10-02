@@ -1101,9 +1101,9 @@ console.log("TOTAL NODES:", data.nodes.length);
 
       if (!activeNodeId) {
         // Clearly visible, rich translucent red for fraud rings and translucent green for safe normal users
-        if (isFraudLink) return "rgba(239, 68, 68, 0.78)"; // Vibrant translucent red
-        if (isMixedLink) return "rgba(245, 158, 11, 0.55)"; // Translucent amber
-        return "rgba(34, 197, 94, 0.52)";                   // Rich translucent emerald green
+        if (isFraudLink) return "rgba(239, 68, 68, 0.85)"; // Vibrant glowing red
+        if (isMixedLink) return "rgba(245, 158, 11, 0.65)"; // Translucent warm amber
+        return "rgba(34, 197, 94, 0.60)";                   // Rich luminous translucent emerald green
       }
 
       const connected = s === String(activeNodeId) || t === String(activeNodeId);
@@ -1123,7 +1123,7 @@ console.log("TOTAL NODES:", data.nodes.length);
       if (tourActive && tourRings[tourStep]) {
         const mSet = new Set(tourRings[tourStep].members.map(String));
         if (mSet.has(s) && mSet.has(t)) {
-          return 2.5;
+          return 3.2;
         }
       }
 
@@ -1139,9 +1139,14 @@ console.log("TOTAL NODES:", data.nodes.length);
       const sIsFraud = sNode?.is_anomalous || (sNode?.anomalyScore ?? 0) >= 0.5;
       const tIsFraud = tNode?.is_anomalous || (tNode?.anomalyScore ?? 0) >= 0.5;
       const isFraudLink = sIsFraud && tIsFraud;
+      const isMixedLink = (sIsFraud && !tIsFraud) || (!sIsFraud && tIsFraud);
 
-      if (!activeNodeId) return isFraudLink ? 1.4 : 0.95;
-      return s === String(activeNodeId) || t === String(activeNodeId) ? 2.2 : 0.05;
+      if (!activeNodeId) {
+        if (isFraudLink) return 2.2;
+        if (isMixedLink) return 1.8;
+        return 1.5; // Broader translucent green edges
+      }
+      return s === String(activeNodeId) || t === String(activeNodeId) ? 3.0 : 0.08;
     },
     [activeNodeId, visibleGraph, tourActive, tourStep, tourRings]
   );
