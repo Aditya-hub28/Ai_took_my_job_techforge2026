@@ -355,7 +355,7 @@ console.log("TOTAL NODES:", data.nodes.length);
             (a, b) => b[1].length - a[1].length
           );
 
-          const liveRings: TourRing[] = sortedRings.slice(0, 8).map(([rId, mNodes]) => {
+          const liveRings: TourRing[] = sortedRings.slice(0, 24).map(([rId, mNodes]) => {
             const sortedByPr = [...mNodes].sort((a, b) => (b.pagerank ?? 0) - (a.pagerank ?? 0));
             const leadHub = sortedByPr[0] || mNodes[0];
             const members = Array.from(new Set(mNodes.map((m) => String(m.id))));
@@ -421,7 +421,7 @@ console.log("TOTAL NODES:", data.nodes.length);
               const ringData = await ringRes.json();
               const rawRings: any[] = ringData?.rings ?? [];
               if (rawRings.length > 0) {
-                const liveTop: TourRing[] = rawRings.slice(0, 5).map((r: any, i: number) => {
+                const liveTop: TourRing[] = rawRings.slice(0, 24).map((r: any, i: number) => {
                   const rawNodes = r.nodes ?? r.members ?? [];
                   const members = rawNodes.map((m: any) => String(m).split("_")[0]);
                   const shape = members.length >= 6 ? "STAR" : (members.length >= 4 ? "CYCLE" : "CHAIN");
@@ -586,22 +586,88 @@ console.log("TOTAL NODES:", data.nodes.length);
       node.z = node.fz;
     });
 
-    // Inner Core for Fraud/Mule Accounts (Radius ~120 - 150 inside the sphere)
-    const fraudCount = fraudList.length;
-    fraudList.forEach((node, i) => {
-      const y = 1 - (i / Math.max(1, fraudCount - 1)) * 2;
-      const radiusAtY = Math.sqrt(Math.max(0, 1 - y * y));
-      const theta = phi * i;
-      const x = Math.cos(theta) * radiusAtY;
-      const z = Math.sin(theta) * radiusAtY;
+    // ── 24 Distinct Mule Rings inside the big sphere ──
+    const numRings = 24;
+    const ringCenters: {
+      x: number;
+      y: number;
+      z: number;
+      u: { x: number; y: number; z: number };
+      v: { x: number; y: number; z: number };
+      radius: number;
+    }[] = [];
 
-      const r = 120 + (i % 5) * 6;
-      node.fx = x * r + 110;
-      node.fy = y * r + 30;
-      node.fz = z * r;
-      node.x = node.fx;
-      node.y = node.fy;
-      node.z = node.fz;
+    for (let k = 0; k < numRings; k++) {
+      const y = 1 - (k / Math.max(1, numRings - 1)) * 2; // from -1 to 1
+      const radiusAtY = Math.sqrt(Math.max(0.02, 1 - y * y));
+      const theta = phi * k * 1.618;
+      // Stagger radial distance between 180 and 260 so the 24 rings float at distinct depths inside the ~440 sphere
+      const rCenter = 190 + (k % 4) * 22;
+      const cx = Math.cos(theta) * radiusAtY * rCenter;
+      const cy = y * rCenter;
+      const cz = Math.sin(theta) * radiusAtY * rCenter;
+
+      // Unit normal from origin towards ring center
+      const len = Math.hypot(cx, cy, cz) || 1;
+      const nx = cx / len;
+      const ny = cy / len;
+      const nz = cz / len;
+
+      // Tangent orthogonal vectors u & v so circle plane faces outward in 3D
+      let ux = 0, uy = 0, uz = 0;
+      if (Math.abs(nx) < 0.9) {
+        const ulen = Math.hypot(ny, nz) || 1;
+        uy = -nz / ulen;
+        uz = ny / ulen;
+      } else {
+        const ulen = Math.hypot(nx, ny) || 1;
+        ux = -ny / ulen;
+        uy = nx / ulen;
+      }
+      const vx = ny * uz - nz * uy;
+      const vy = nz * ux - nx * uz;
+      const vz = nx * uy - ny * ux;
+
+      const ringRadius = 26 + (k % 3) * 6; // Circle radius ~26 - 38
+
+      ringCenters.push({
+        x: cx,
+        y: cy,
+        z: cz,
+        u: { x: ux, y: uy, z: uz },
+        v: { x: vx, y: vy, z: vz },
+        radius: ringRadius,
+      });
+    }
+
+    // Partition fraud nodes evenly across the 24 rings
+    const ringBuckets: GraphNode[][] = Array.from({ length: numRings }, () => []);
+    fraudList.forEach((node, idx) => {
+      const ringIdx = idx % numRings;
+      ringBuckets[ringIdx].push(node);
+      node.ringIds = [ringIdx + 1];
+    });
+
+    // Position each fraud node along the perimeter of its circular ring
+    ringBuckets.forEach((bucket, k) => {
+      const center = ringCenters[k];
+      const count = bucket.length;
+      bucket.forEach((node, j) => {
+        const angle = (j / Math.max(1, count)) * 2 * Math.PI;
+        const cosA = Math.cos(angle);
+        const sinA = Math.sin(angle);
+
+        const px = center.x + center.radius * (cosA * center.u.x + sinA * center.v.x);
+        const py = center.y + center.radius * (cosA * center.u.y + sinA * center.v.y);
+        const pz = center.z + center.radius * (cosA * center.u.z + sinA * center.v.z);
+
+        node.fx = px;
+        node.fy = py;
+        node.fz = pz;
+        node.x = px;
+        node.y = py;
+        node.z = pz;
+      });
     });
 
     // ── Links ──
@@ -642,6 +708,29 @@ console.log("TOTAL NODES:", data.nodes.length);
               existingPairs.add(`${tId}_${sId}`);
               added++;
             }
+          }
+        }
+    // 3. Connect each of the 24 rings in a circular ring with glowing red edges
+    ringBuckets.forEach((bucket) => {
+      const count = bucket.length;
+      if (count < 2) return;
+      for (let j = 0; j < count; j++) {
+        const currentId = String(bucket[j].id);
+        const nextId = String(bucket[(j + 1) % count].id);
+        const key = `${currentId}_${nextId}`;
+        if (!existingPairs.has(key)) {
+          links.push({ source: currentId, target: nextId, isSynthetic: true } as any);
+          existingPairs.add(key);
+          existingPairs.add(`${nextId}_${currentId}`);
+        }
+        // Cross chord for structure when 5+ nodes
+        if (count >= 5 && j % 2 === 0) {
+          const chordId = String(bucket[(j + Math.floor(count / 2)) % count].id);
+          const chordKey = `${currentId}_${chordId}`;
+          if (!existingPairs.has(chordKey)) {
+            links.push({ source: currentId, target: chordId, isSynthetic: true } as any);
+            existingPairs.add(chordKey);
+            existingPairs.add(`${chordId}_${currentId}`);
           }
         }
       }
