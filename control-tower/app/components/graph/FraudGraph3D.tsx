@@ -710,6 +710,9 @@ console.log("TOTAL NODES:", data.nodes.length);
             }
           }
         }
+      }
+    });
+
     // 3. Connect each of the 24 rings in a circular ring with glowing red edges
     ringBuckets.forEach((bucket) => {
       const count = bucket.length;
