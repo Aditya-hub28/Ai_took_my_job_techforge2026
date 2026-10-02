@@ -535,20 +535,20 @@ console.log("TOTAL NODES:", data.nodes.length);
       return { nodes: ringNodes, links: rLinks };
     }
 
-    // 4. Default: Dense 3D Connected Constellation of green normal accounts + glowing red fraud hubs
+    // 4. Default: Elegant, balanced 3D Constellation of connected accounts without visual clutter
     const fraudNodes = nodes.filter((n) => n.is_anomalous || (n.anomalyScore ?? 0) >= 0.5);
     const normalNodes = nodes.filter((n) => !n.is_anomalous && (n.anomalyScore ?? 0) < 0.5);
 
     // Keep top fraud nodes (hubs, bridges, mules)
-    const topFraud = fraudNodes.slice(0, 220);
+    const topFraud = fraudNodes.slice(0, 85);
     const topFraudIds = new Set(topFraud.map((n) => String(n.id)));
 
-    // 1. Gather all links directly connecting fraud nodes to each other
+    // 1. Gather clean subset of links directly connecting fraud nodes to each other
     const fraudLinks = rawGraph.links.filter((l) => {
       const s = String(resolveId(l.source));
       const t = String(resolveId(l.target));
       return topFraudIds.has(s) && topFraudIds.has(t);
-    });
+    }).slice(0, 110);
 
     // 2. Gather links connecting fraud nodes to normal retail/victim accounts (Mule <-> Safe User)
     const fraudNormalLinks: GraphLink[] = [];
@@ -563,31 +563,27 @@ console.log("TOTAL NODES:", data.nodes.length);
       if ((sIsFraud && !tIsFraud) || (!sIsFraud && tIsFraud)) {
         fraudNormalLinks.push(l);
         connectedNormalIds.add(sIsFraud ? t : s);
-        if (connectedNormalIds.size >= 450) break;
+        if (fraudNormalLinks.length >= 120) break;
       }
     }
 
-    // 3. Gather links connecting normal users to OTHER normal users (showing where safe users send/receive money!)
+    // 3. Gather clean representative links connecting normal users to other normal users / merchants
     const normalNormalLinks: GraphLink[] = [];
-    const secondHopNormalIds = new Set<string>();
-
     for (const l of rawGraph.links) {
       const s = String(resolveId(l.source));
       const t = String(resolveId(l.target));
       if (!topFraudIds.has(s) && !topFraudIds.has(t)) {
         if (connectedNormalIds.has(s) || connectedNormalIds.has(t)) {
           normalNormalLinks.push(l);
-          secondHopNormalIds.add(s);
-          secondHopNormalIds.add(t);
-          if (normalNormalLinks.length >= 900) break;
+          if (normalNormalLinks.length >= 100) break;
         }
       }
     }
 
-    // 4. Combine all selected connected links
+    // 4. Combine selected clean links (total ~300 links for a clean, non-messy network)
     const combinedSelectedLinks = [...fraudLinks, ...fraudNormalLinks, ...normalNormalLinks];
 
-    // 5. Gather all nodes that participate in these active transaction links
+    // 5. Gather all nodes that participate in these links
     const allIncludedIds = new Set<string>();
     combinedSelectedLinks.forEach((l) => {
       allIncludedIds.add(String(resolveId(l.source)));
@@ -615,19 +611,8 @@ console.log("TOTAL NODES:", data.nodes.length);
       if (n) capped.push(n);
     });
 
-    // If still below 750 nodes, populate additional high-volume normal nodes and their counterparties
-    if (capped.length < 600) {
-      for (const n of normalNodes) {
-        if (!allIncludedIds.has(String(n.id))) {
-          capped.push(n);
-          allIncludedIds.add(String(n.id));
-          if (capped.length >= 750) break;
-        }
-      }
-    }
-
     const cappedIds = new Set(capped.map((n) => String(n.id)));
-    const cappedLinks = rawGraph.links.filter(
+    const cappedLinks = combinedSelectedLinks.filter(
       (l) =>
         cappedIds.has(String(resolveId(l.source))) && cappedIds.has(String(resolveId(l.target)))
     );
@@ -993,13 +978,13 @@ console.log("TOTAL NODES:", data.nodes.length);
       const isMixedLink = (sIsFraud && !tIsFraud) || (!sIsFraud && tIsFraud);
 
       if (!activeNodeId) {
-        if (isFraudLink) return "rgba(239, 68, 68, 0.75)";     // Crimson red for fraud ring internal links
-        if (isMixedLink) return "rgba(245, 158, 11, 0.65)";    // Vibrant amber for fraud <-> normal user flow
-        return "rgba(34, 197, 94, 0.45)";                     // Crisp emerald green for safe normal user transactions
+        if (isFraudLink) return "rgba(239, 68, 68, 0.45)";     // Subtle crimson for fraud rings
+        if (isMixedLink) return "rgba(245, 158, 11, 0.35)";    // Soft amber for mule-retail flow
+        return "rgba(34, 197, 94, 0.22)";                     // Sleek subtle green for safe retail transactions
       }
 
       const connected = s === String(activeNodeId) || t === String(activeNodeId);
-      if (!connected) return "rgba(255,255,255,0.05)";
+      if (!connected) return "rgba(255,255,255,0.03)";
       if (isFraudLink) return "#ef4444";
       if (isMixedLink) return "#f59e0b";
       return "#22c55e"; // Bright emerald green if active safe normal user link
@@ -1034,13 +1019,13 @@ console.log("TOTAL NODES:", data.nodes.length);
       const isMixedLink = (sIsFraud && !tIsFraud) || (!sIsFraud && tIsFraud);
 
       if (!activeNodeId) {
-        if (isFraudLink) return 1.8;
-        if (isMixedLink) return 1.4;
-        return 1.2; // Clean visible width for normal user transactions
+        if (isFraudLink) return 1.0;
+        if (isMixedLink) return 0.7;
+        return 0.5; // Thin, ultra-clean threads
       }
 
       const connected = s === String(activeNodeId) || t === String(activeNodeId);
-      return connected ? 2.8 : 0.1;
+      return connected ? 2.6 : 0.04;
     },
     [activeNodeId, visibleGraph, tourActive, tourStep, tourRings]
   );
@@ -1524,17 +1509,26 @@ console.log("TOTAL NODES:", data.nodes.length);
         enableNodeDrag={false}
         linkWidth={getLinkWidth}
         linkColor={getLinkColor}
-        linkDirectionalArrowLength={3.5}
+        linkDirectionalArrowLength={(link: GraphLink) => {
+          if (!activeNodeId && !tourActive) return 0;
+          const s = String(resolveId(link.source));
+          const t = String(resolveId(link.target));
+          if (activeNodeId && (s === String(activeNodeId) || t === String(activeNodeId))) return 3.5;
+          if (tourActive) return 3;
+          return 0;
+        }}
         linkDirectionalArrowRelPos={0.95}
         linkDirectionalArrowColor={getLinkColor}
         linkDirectionalParticles={(link: GraphLink) => {
+          if (!activeNodeId && !tourActive) return 0;
           const s = String(resolveId(link.source));
           const t = String(resolveId(link.target));
           if (activeNodeId && (s === String(activeNodeId) || t === String(activeNodeId))) return 3;
-          return 1;
+          if (tourActive) return 2;
+          return 0;
         }}
-        linkDirectionalParticleWidth={1.6}
-        linkDirectionalParticleSpeed={0.005}
+        linkDirectionalParticleWidth={1.8}
+        linkDirectionalParticleSpeed={0.006}
         nodeLabel={getNodeLabel}
         nodeThreeObject={buildNodeObject}
         nodeThreeObjectExtend={false}
@@ -1553,10 +1547,10 @@ console.log("TOTAL NODES:", data.nodes.length);
         }}
         d3Force={isBundled ? (forceName: string, force: any) => {
           if (forceName === "charge") force.strength(-60);
-          if (forceName === "link") force.distance(30).strength(0.8);
+          if (forceName === "link") force.distance(35).strength(0.8);
         } : (forceName: string, force: any) => {
-          if (forceName === "charge") force.strength(-120);
-          if (forceName === "link") force.distance(45).strength(0.65);
+          if (forceName === "charge") force.strength(-150);
+          if (forceName === "link") force.distance(60).strength(0.5);
         }}
       />
     </div>
