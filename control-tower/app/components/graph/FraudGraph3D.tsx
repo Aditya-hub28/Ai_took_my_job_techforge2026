@@ -515,27 +515,7 @@ console.log("TOTAL NODES:", data.nodes.length);
       );
     }
 
-    // 2. Show only fraud
-    if (effectiveShowOnlyFraud) {
-      const fraudNodes = nodes.filter((n) => n.is_anomalous || (n.anomalyScore ?? 0) >= 0.5);
-      const fIds = new Set(fraudNodes.map((n) => n.id));
-      const fLinks = rawGraph.links.filter(
-        (l) => fIds.has(resolveId(l.source)) && fIds.has(resolveId(l.target))
-      );
-      return { nodes: fraudNodes, links: fLinks };
-    }
-
-    // 3. Show only ring members — fallback to anomalous nodes if no ringIds populated
-    if (showOnlyRings || viewMode === "rings") {
-      const ringNodes = nodes.filter((n) => (n.ringIds?.length ?? 0) > 0 || n.is_anomalous);
-      const rIds = new Set(ringNodes.map((n) => n.id));
-      const rLinks = rawGraph.links.filter(
-        (l) => rIds.has(resolveId(l.source)) && rIds.has(resolveId(l.target))
-      );
-      return { nodes: ringNodes, links: rLinks };
-    }
-
-    // 4. Default: 100% Ground-Truth Dataset Transactions
+    // 4. Default & Fraud View: 100% Ground-Truth Dataset Transactions
     const degreeMap = new Map<string, number>();
     rawGraph.links.forEach((l) => {
       const s = String(resolveId(l.source));
@@ -555,7 +535,8 @@ console.log("TOTAL NODES:", data.nodes.length);
       .sort((a, b) => (degreeMap.get(String(b.id)) ?? 0) - (degreeMap.get(String(a.id)) ?? 0));
 
     const cappedFraud = fraudNodes.slice(0, 240);
-    const cappedNormal = normalNodes.slice(0, 800);
+    // When "show only fraud" or "rings" is toggled, hide normal nodes so only 24 clean rings are shown!
+    const cappedNormal = (effectiveShowOnlyFraud || showOnlyRings || viewMode === "rings") ? [] : normalNodes.slice(0, 800);
     const capped = [...cappedFraud, ...cappedNormal];
 
     // Always ensure all members of the active syndicate tour are included in visible graph
@@ -694,7 +675,15 @@ console.log("TOTAL NODES:", data.nodes.length);
     );
 
     const fraudIdSet = new Set(fraudList.map((n) => String(n.id)));
-    const f2fLinks: GraphLink[] = [];
+
+    // Map each fraud node to its specific ring (0 to 23)
+    const nodeRingMap = new Map<string, number>();
+    ringBuckets.forEach((bucket, k) => {
+      bucket.forEach((n) => nodeRingMap.set(String(n.id), k));
+    });
+
+    const intraRingF2F: GraphLink[] = [];
+    const interRingF2F: GraphLink[] = [];
     const crossLinks: GraphLink[] = [];
     const n2nLinks: GraphLink[] = [];
 
@@ -703,16 +692,31 @@ console.log("TOTAL NODES:", data.nodes.length);
       const t = String(resolveId(l.target));
       const sFraud = fraudIdSet.has(s);
       const tFraud = fraudIdSet.has(t);
-      if (sFraud && tFraud) f2fLinks.push(l);
-      else if (sFraud || tFraud) crossLinks.push(l);
-      else n2nLinks.push(l);
+
+      if (sFraud && tFraud) {
+        const rS = nodeRingMap.get(s);
+        const rT = nodeRingMap.get(t);
+        if (rS !== undefined && rT !== undefined && rS === rT) {
+          intraRingF2F.push(l); // Genuine transfer WITHIN the same circular ring
+        } else {
+          interRingF2F.push(l); // Genuine transfer BETWEEN different rings
+        }
+      } else if (sFraud || tFraud) {
+        crossLinks.push(l);
+      } else {
+        n2nLinks.push(l);
+      }
     });
 
-    // Clean balanced sample of real dataset transactions so canvas stays silky 60fps
-    const selectedGenuineLinks = [
-      ...f2fLinks.slice(0, 900),
-      ...n2nLinks.slice(0, 1300),
-      ...crossLinks.slice(0, 450),
+    // Curate visible links so:
+    // 1. All 24 rings are completely visible as distinct circular orbits (all intra-ring links)
+    // 2. Center of sphere remains open and clean (at most 36 inter-ring bridge transfers)
+    // 3. Normal users form the outer green constellation
+    const selectedGenuineLinks: GraphLink[] = [
+      ...intraRingF2F,                      // All genuine transfers within each of the 24 rings
+      ...interRingF2F.slice(0, 36),          // Subtle cross-ring transfers (zero hairy mess)
+      ...(effectiveShowOnlyFraud ? [] : n2nLinks.slice(0, 1200)),
+      ...(effectiveShowOnlyFraud ? [] : crossLinks.slice(0, 300)),
     ];
 
     // If an active node is selected, guarantee all of its genuine dataset links are included
