@@ -5,9 +5,10 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import {
   Zap, RefreshCw, BarChart3, Fingerprint, Shuffle,
-  Link2, Network, Boxes, ChevronRight, Waves, Menu, X, Download
+  Link2, Network, Boxes, ChevronRight, Waves, Menu, X, Download, ShieldAlert
 } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
+import MoneyRecoverySimulation from "../components/investigation/MoneyRecoverySimulation";
 
 const ML_URL  = process.env.NEXT_PUBLIC_ML_URL  ?? "http://localhost:8001";
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL ?? "http://localhost:8082";
@@ -22,6 +23,7 @@ const NAV = [
   { id: "clusters",   label: "Clusters",   icon: Boxes       },
   { id: "blockchain", label: "Blockchain", icon: Link2       },
   { id: "metrics",    label: "Metrics",    icon: BarChart3   },
+  { id: "recovery",   label: "Recovery & Freeze", icon: ShieldAlert },
 ] as const;
 type View = (typeof NAV)[number]["id"];
 
@@ -2041,10 +2043,25 @@ function MetricsSection() {
 }
 
 export default function FraudDashboard() {
-  const [active,      setActive]      = useState<View>("simulator");
-  const [stats,       setStats]       = useState<any>(null);
-  const [lastResult,  setLastResult]  = useState<LastResult | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [active,         setActive]         = useState<View>("simulator");
+  const [initialAccount, setInitialAccount] = useState("10004");
+  const [stats,          setStats]          = useState<any>(null);
+  const [lastResult,     setLastResult]     = useState<LastResult | null>(null);
+  const [sidebarOpen,    setSidebarOpen]    = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab") as View;
+      const accParam = params.get("account");
+      if (tabParam && NAV.some(n => n.id === tabParam)) {
+        setActive(tabParam);
+      }
+      if (accParam) {
+        setInitialAccount(accParam);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     fetch(`${API_URL}/api/admin/stats`)
@@ -2063,12 +2080,14 @@ export default function FraudDashboard() {
     clusters:   <ClustersSection />,
     blockchain: <BlockchainSection />,
     metrics:    <MetricsSection />,
+    recovery:   <MoneyRecoverySimulation initialAccount={initialAccount} />,
   };
 
   const NAV_GROUPS = [
-    { label: "Detection", items: NAV.slice(0, 3) },
-    { label: "Signals",   items: NAV.slice(3, 6) },
-    { label: "Analytics", items: NAV.slice(6, 9) },
+    { label: "Detection",    items: NAV.slice(0, 3) },
+    { label: "Signals",      items: NAV.slice(3, 6) },
+    { label: "Analytics",    items: NAV.slice(6, 9) },
+    { label: "Intervention", items: NAV.slice(9, 10) },
   ];
 
   const SidebarContent = () => (

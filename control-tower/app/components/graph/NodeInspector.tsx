@@ -402,7 +402,19 @@ export function NodeInspector({ node, onClose }: NodeInspectorProps) {
         </Section>
       )}
 
-      
+      {/* Action: Launch Money Recovery & Freeze Simulation */}
+      <div className="p-4 mt-4 border-t border-white/[0.08] bg-black/40">
+        <a
+          href={`/dashboard?tab=recovery&account=${node.id}`}
+          className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#CAFF33] to-emerald-400 hover:opacity-95 text-black font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(202,255,51,0.2)] transition cursor-pointer text-center"
+        >
+          <span>🎯</span>
+          <span>Simulate Money Recovery</span>
+        </a>
+        <p className="text-[10px] text-gray-500 font-mono text-center mt-1.5">
+          Launch Freeze Frontier simulation for #{String(node.id)}
+        </p>
+      </div>
     </aside>
   );
 }
