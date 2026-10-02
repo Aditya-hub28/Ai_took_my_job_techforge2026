@@ -88,6 +88,19 @@ export default function StatsPage() {
 
       <Navbar />
 
+      {/* Consolidation banner */}
+      <div className="bg-[#CAFF33]/10 border-b border-[#CAFF33]/25 px-6 py-2.5 flex items-center justify-between text-xs font-mono">
+        <span className="text-white/80">
+          💡 <strong className="text-[#CAFF33]">Consolidated Metrics:</strong> Live scientific benchmarks and PDF evaluation reports are available in the Dashboard.
+        </span>
+        <a
+          href="/dashboard?tab=metrics"
+          className="px-3 py-1 bg-[#CAFF33] text-black font-bold rounded-lg uppercase tracking-wider text-[10px] hover:bg-[#CAFF33]/90 transition"
+        >
+          Open Metrics & Benchmarks →
+        </a>
+      </div>
+
       <main className="flex-1 w-full max-w-[1600px] mx-auto px-6 md:px-10 py-12">
         
         {/* TOP LEVEL METRICS (PRIMARY KPIs) */}

@@ -117,8 +117,8 @@ const NavContent = ({ session, onLinkClick }: { session: any, onLinkClick?: () =
       Network
     </Link>
 
-    <Link href="/stats" target="_blank" rel="noopener noreferrer" onClick={onLinkClick} className="hover:text-[#CAFF33] transition-colors">
-      Stats
+    <Link href="/dashboard?tab=metrics" onClick={onLinkClick} className="hover:text-[#CAFF33] transition-colors">
+      Metrics & Benchmarks
     </Link>
 
     <Link href="/service" onClick={onLinkClick} className="hover:text-[#CAFF33] transition-colors">

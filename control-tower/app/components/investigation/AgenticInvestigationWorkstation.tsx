@@ -128,6 +128,7 @@ export default function AgenticInvestigationWorkstation({ initialAccount = "1000
   const [decisionNotes, setDecisionNotes] = useState("");
   const [officerName, setOfficerName] = useState("Lead Officer");
   const [actionSuccessMessage, setActionSuccessMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Load or run investigation
   const runInvestigation = async (accId?: string, amt?: number) => {
@@ -136,6 +137,7 @@ export default function AgenticInvestigationWorkstation({ initialAccount = "1000
     setLoading(true);
     setQueryResponse(null);
     setActionSuccessMessage(null);
+    setError(null);
 
     try {
       const res = await fetch(`${API_BASE}/api/investigation/start`, {
@@ -151,9 +153,12 @@ export default function AgenticInvestigationWorkstation({ initialAccount = "1000
         // Fetch graph and timeline
         fetchGraph(acc);
         fetchTimeline(acc);
+      } else {
+        setError(`Investigation server returned HTTP ${res.status}`);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to run investigation:", err);
+      setError("Unable to connect to investigation engine at " + API_BASE);
     } finally {
       setLoading(false);
     }
@@ -354,12 +359,48 @@ export default function AgenticInvestigationWorkstation({ initialAccount = "1000
         </div>
       </div>
 
-      {actionSuccessMessage && (
-        <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
-          {actionSuccessMessage}
+      {error && (
+        <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs font-bold flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <AlertOctagon className="w-4 h-4 shrink-0 text-red-400" />
+            <span>{error}</span>
+          </div>
+          <button
+            onClick={() => runInvestigation()}
+            className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 rounded-lg text-white font-mono text-[10px] uppercase tracking-wider"
+          >
+            Retry
+          </button>
         </div>
       )}
+
+      {/* ── 7-STAGE FINANCIAL CRIME WORKFLOW RIBBON ── */}
+      <div className="bg-[#080808] border border-white/[0.07] rounded-xl p-3.5 overflow-x-auto shadow-inner">
+        <div className="flex items-center gap-2 min-w-[780px] text-[10px] font-mono uppercase tracking-wider">
+          <span className="text-white/40 font-bold shrink-0">Pipeline:</span>
+          {[
+            { n: "1", label: "Detection Alert", active: true },
+            { n: "2", label: "11-Tool Agent", active: true },
+            { n: "3", label: "Evidence Dossier", active: (investigation?.evidence?.length ?? 0) > 0 },
+            { n: "4", label: "Money Flow DAG", active: (investigation?.summary?.traceableAmount ?? 0) > 0 },
+            { n: "5", label: "Freeze Frontier", active: (investigation?.summary?.potentiallyProtectedAmount ?? 0) > 0 },
+            { n: "6", label: "Human Verdict", active: investigation?.status === "CONFIRMED" || investigation?.status === "CLEARED" || investigation?.status === "ESCALATED" },
+            { n: "7", label: "Audit Trail", active: (investigation?.auditTrail?.length ?? 0) > 0 },
+          ].map((s, idx) => (
+            <React.Fragment key={s.n}>
+              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all ${
+                s.active
+                  ? "bg-[#CAFF33]/10 border-[#CAFF33]/30 text-[#CAFF33] font-bold shadow-[0_0_10px_rgba(202,255,51,0.1)]"
+                  : "bg-white/[0.02] border-white/[0.05] text-white/40"
+              }`}>
+                <span className="opacity-60">{s.n}.</span>
+                <span>{s.label}</span>
+              </div>
+              {idx < 6 && <span className="text-white/20">→</span>}
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
 
       {/* ── AGENT EXECUTION TRACE (TRANSPARENT 11-TOOL STEPPER) ── */}
       <div className="bg-[#0a0a0a] border border-white/[0.07] rounded-2xl p-5">

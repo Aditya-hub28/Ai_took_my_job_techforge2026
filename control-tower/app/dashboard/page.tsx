@@ -487,6 +487,32 @@ function SimulatorSection() {
               ))}
             </div>
 
+            {/* Direct Workflow Progression: Detection -> Investigation -> Recovery */}
+            <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] uppercase font-mono font-bold text-white/50">Next Investigation Steps:</span>
+                <span className="text-[9px] font-mono text-[#CAFF33] bg-[#CAFF33]/10 px-2 py-0.5 rounded border border-[#CAFF33]/20">
+                  Account #{form.sid}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <a
+                  href={`/dashboard?tab=investigation&account=${form.sid}`}
+                  className="px-3 py-1.5 rounded-xl bg-purple-600/90 hover:bg-purple-500 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-[0_0_12px_rgba(168,85,247,0.3)]"
+                >
+                  <Bot className="w-3.5 h-3.5" />
+                  Launch AI Investigation
+                </a>
+                <a
+                  href={`/dashboard?tab=recovery&account=${form.sid}`}
+                  className="px-3 py-1.5 rounded-xl bg-[#CAFF33] hover:bg-[#CAFF33]/90 text-black font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-[0_0_12px_rgba(202,255,51,0.3)]"
+                >
+                  <ShieldAlert className="w-3.5 h-3.5" />
+                  Simulate Money Recovery
+                </a>
+              </div>
+            </div>
+
             <Card className="p-4 sm:p-6 flex-1">
               <div className="flex gap-1.5 mb-6 pb-5 border-b border-white/[0.05] flex-wrap">
                 {["Overview","Behavioral","Structural","Identity","Fusion"].map(t => (
