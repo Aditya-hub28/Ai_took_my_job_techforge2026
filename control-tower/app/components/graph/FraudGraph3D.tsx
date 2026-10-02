@@ -535,11 +535,10 @@ console.log("TOTAL NODES:", data.nodes.length);
       return { nodes: ringNodes, links: rLinks };
     }
 
-    // 4. Default: Dense 3D Constellation of green normal nodes + glowing red fraud hubs
+    // 4. Default: 3D Fibonacci Globe Sphere Layout
     const fraudNodes = nodes.filter((n) => n.is_anomalous || (n.anomalyScore ?? 0) >= 0.5);
     const normalNodes = nodes.filter((n) => !n.is_anomalous && (n.anomalyScore ?? 0) < 0.5);
 
-    // Keep all top fraud nodes + large field of normal nodes (matching original galaxy style & positions)
     const cappedFraud = fraudNodes.slice(0, 220);
     const cappedNormal = normalNodes.slice(0, 850);
     const capped = [...cappedFraud, ...cappedNormal];
@@ -563,61 +562,87 @@ console.log("TOTAL NODES:", data.nodes.length);
     }
 
     const cappedIds = new Set(capped.map((n) => String(n.id)));
+    const normalList = capped.filter((n) => !n.is_anomalous && (n.anomalyScore ?? 0) < 0.5);
+    const fraudList = capped.filter((n) => n.is_anomalous || (n.anomalyScore ?? 0) >= 0.5);
 
-    // 1. Gather all genuine dataset links that exist between these nodes
+    // ── 3D Fibonacci Sphere Coordinate Distribution ──
+    const phi = Math.PI * (3 - Math.sqrt(5)); // Golden angle (~2.39996 rad)
+
+    // Big Outer Globe Sphere for Normal Safe Users (Radius ~430 - 455)
+    const normalCount = normalList.length;
+    normalList.forEach((node, i) => {
+      const y = 1 - (i / Math.max(1, normalCount - 1)) * 2;
+      const radiusAtY = Math.sqrt(Math.max(0, 1 - y * y));
+      const theta = phi * i;
+      const x = Math.cos(theta) * radiusAtY;
+      const z = Math.sin(theta) * radiusAtY;
+
+      const r = 430 + (i % 6) * 4; // Subtle shell depth
+      node.fx = x * r;
+      node.fy = y * r;
+      node.fz = z * r;
+      node.x = node.fx;
+      node.y = node.fy;
+      node.z = node.fz;
+    });
+
+    // Inner Core for Fraud/Mule Accounts (Radius ~120 - 150 inside the sphere)
+    const fraudCount = fraudList.length;
+    fraudList.forEach((node, i) => {
+      const y = 1 - (i / Math.max(1, fraudCount - 1)) * 2;
+      const radiusAtY = Math.sqrt(Math.max(0, 1 - y * y));
+      const theta = phi * i;
+      const x = Math.cos(theta) * radiusAtY;
+      const z = Math.sin(theta) * radiusAtY;
+
+      const r = 120 + (i % 5) * 6;
+      node.fx = x * r + 110;
+      node.fy = y * r + 30;
+      node.fz = z * r;
+      node.x = node.fx;
+      node.y = node.fy;
+      node.z = node.fz;
+    });
+
+    // ── Links ──
+    // 1. Genuine dataset links
     const links: GraphLink[] = rawGraph.links.filter(
       (l) =>
         cappedIds.has(String(resolveId(l.source))) && cappedIds.has(String(resolveId(l.target)))
     );
 
-    // 2. Identify nodes that have 0 links (the non-connected nodes in space)
-    const connectedNodeIds = new Set<string>();
-    links.forEach((l) => {
-      connectedNodeIds.add(String(resolveId(l.source)));
-      connectedNodeIds.add(String(resolveId(l.target)));
-    });
-
-    // 3. For all normal nodes across the sphere, ensure clean interconnected edges
-    // with isSynthetic: true so the big sphere maintains its wide 3D constellation
-    const normalList = capped.filter((n) => !n.is_anomalous);
-    const fraudList = capped.filter((n) => n.is_anomalous);
-
-    const normalDegree = new Map<string, number>();
+    const existingPairs = new Set<string>();
     links.forEach((l) => {
       const s = String(resolveId(l.source));
       const t = String(resolveId(l.target));
-      normalDegree.set(s, (normalDegree.get(s) ?? 0) + 1);
-      normalDegree.set(t, (normalDegree.get(t) ?? 0) + 1);
+      existingPairs.add(`${s}_${t}`);
+      existingPairs.add(`${t}_${s}`);
     });
 
-    normalList.forEach((node, idx) => {
-      const id = String(node.id);
-      const degree = normalDegree.get(id) ?? 0;
-      // Connect isolated or single-link normal nodes so the entire sphere has a clean, uniform web
-      if (degree === 0 && normalList.length > 1) {
-        const p1 = normalList[(idx + 1) % normalList.length];
-        if (p1 && String(p1.id) !== id) {
-          links.push({ source: id, target: String(p1.id), isSynthetic: true } as any);
-          normalDegree.set(id, (normalDegree.get(id) ?? 0) + 1);
-        }
-      }
-      if (degree <= 1 && idx % 3 === 0 && normalList.length > 4) {
-        const p2 = normalList[(idx + 4) % normalList.length];
-        if (p2 && String(p2.id) !== id) {
-          links.push({ source: id, target: String(p2.id), isSynthetic: true } as any);
-          normalDegree.set(id, (normalDegree.get(id) ?? 0) + 1);
-        }
-      }
-    });
-
-    // Ensure isolated fraud nodes are connected into the fraud ring cluster
-    fraudList.forEach((node, idx) => {
-      const id = String(node.id);
-      if (!connectedNodeIds.has(id) && fraudList.length > 1) {
-        const targetFraud = fraudList[(idx + 1) % fraudList.length];
-        if (targetFraud && String(targetFraud.id) !== id) {
-          links.push({ source: id, target: String(targetFraud.id), isSynthetic: true } as any);
-          connectedNodeIds.add(id);
+    // 2. Connect normal nodes along the sphere surface to nearest spatial neighbors
+    const stepOffsets = [1, 2, 3, 5, 8, 13];
+    normalList.forEach((node, i) => {
+      const sId = String(node.id);
+      let added = 0;
+      for (const offset of stepOffsets) {
+        if (added >= 2) break;
+        const targetIdx = (i + offset) % normalCount;
+        const targetNode = normalList[targetIdx];
+        if (targetNode && String(targetNode.id) !== sId) {
+          const tId = String(targetNode.id);
+          const key = `${sId}_${tId}`;
+          if (!existingPairs.has(key)) {
+            const dx = (node.fx ?? 0) - (targetNode.fx ?? 0);
+            const dy = (node.fy ?? 0) - (targetNode.fy ?? 0);
+            const dz = (node.fz ?? 0) - (targetNode.fz ?? 0);
+            const dist = Math.hypot(dx, dy, dz);
+            if (dist < 180) {
+              links.push({ source: sId, target: tId, isSynthetic: true } as any);
+              existingPairs.add(key);
+              existingPairs.add(`${tId}_${sId}`);
+              added++;
+            }
+          }
         }
       }
     });
