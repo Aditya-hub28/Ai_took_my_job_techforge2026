@@ -577,26 +577,47 @@ console.log("TOTAL NODES:", data.nodes.length);
       connectedNodeIds.add(String(resolveId(l.target)));
     });
 
-    // 3. For any non-connected node, connect it from its existing position to a nearby peer
-    // with isSynthetic: true so the physical position in space is preserved without clustering
+    // 3. For all normal nodes across the sphere, ensure clean interconnected edges
+    // with isSynthetic: true so the big sphere maintains its wide 3D constellation
     const normalList = capped.filter((n) => !n.is_anomalous);
     const fraudList = capped.filter((n) => n.is_anomalous);
 
-    capped.forEach((node, idx) => {
+    const normalDegree = new Map<string, number>();
+    links.forEach((l) => {
+      const s = String(resolveId(l.source));
+      const t = String(resolveId(l.target));
+      normalDegree.set(s, (normalDegree.get(s) ?? 0) + 1);
+      normalDegree.set(t, (normalDegree.get(t) ?? 0) + 1);
+    });
+
+    normalList.forEach((node, idx) => {
       const id = String(node.id);
-      if (!connectedNodeIds.has(id)) {
-        if (!node.is_anomalous && normalList.length > 1) {
-          const targetPeer = normalList[(idx + 1) % normalList.length];
-          if (targetPeer && String(targetPeer.id) !== id) {
-            links.push({ source: id, target: String(targetPeer.id), isSynthetic: true } as any);
-            connectedNodeIds.add(id);
-          }
-        } else if (fraudList.length > 1) {
-          const targetFraud = fraudList[(idx + 1) % fraudList.length];
-          if (targetFraud && String(targetFraud.id) !== id) {
-            links.push({ source: id, target: String(targetFraud.id), isSynthetic: true } as any);
-            connectedNodeIds.add(id);
-          }
+      const degree = normalDegree.get(id) ?? 0;
+      // Connect isolated or single-link normal nodes so the entire sphere has a clean, uniform web
+      if (degree === 0 && normalList.length > 1) {
+        const p1 = normalList[(idx + 1) % normalList.length];
+        if (p1 && String(p1.id) !== id) {
+          links.push({ source: id, target: String(p1.id), isSynthetic: true } as any);
+          normalDegree.set(id, (normalDegree.get(id) ?? 0) + 1);
+        }
+      }
+      if (degree <= 1 && idx % 3 === 0 && normalList.length > 4) {
+        const p2 = normalList[(idx + 4) % normalList.length];
+        if (p2 && String(p2.id) !== id) {
+          links.push({ source: id, target: String(p2.id), isSynthetic: true } as any);
+          normalDegree.set(id, (normalDegree.get(id) ?? 0) + 1);
+        }
+      }
+    });
+
+    // Ensure isolated fraud nodes are connected into the fraud ring cluster
+    fraudList.forEach((node, idx) => {
+      const id = String(node.id);
+      if (!connectedNodeIds.has(id) && fraudList.length > 1) {
+        const targetFraud = fraudList[(idx + 1) % fraudList.length];
+        if (targetFraud && String(targetFraud.id) !== id) {
+          links.push({ source: id, target: String(targetFraud.id), isSynthetic: true } as any);
+          connectedNodeIds.add(id);
         }
       }
     });
@@ -955,20 +976,24 @@ console.log("TOTAL NODES:", data.nodes.length);
           ? (link.target as GraphNode)
           : visibleGraph?.nodes.find((n) => String(n.id) === t);
 
-      const isFraudLink =
-        (sNode?.is_anomalous || (sNode?.anomalyScore ?? 0) >= 0.5) &&
-        (tNode?.is_anomalous || (tNode?.anomalyScore ?? 0) >= 0.5);
+      const sIsFraud = sNode?.is_anomalous || (sNode?.anomalyScore ?? 0) >= 0.5;
+      const tIsFraud = tNode?.is_anomalous || (tNode?.anomalyScore ?? 0) >= 0.5;
+
+      const isFraudLink = sIsFraud && tIsFraud;
+      const isMixedLink = (sIsFraud && !tIsFraud) || (!sIsFraud && tIsFraud);
 
       if (!activeNodeId) {
-        // Original constellation styling: fraud links = soft red, normal/safe links = thin pale translucent grey
+        // Red edges for fraud/mule rings, green edges for safe normal users, soft amber for cross-links
         if (isFraudLink) return "rgba(239, 68, 68, 0.55)";
-        return "rgba(180, 180, 200, 0.18)";
+        if (isMixedLink) return "rgba(245, 158, 11, 0.30)";
+        return "rgba(34, 197, 94, 0.24)"; // Sleek subtle green edge for non-mule normal users
       }
 
       const connected = s === String(activeNodeId) || t === String(activeNodeId);
-      if (!connected) return "rgba(255,255,255,0.04)";
+      if (!connected) return "rgba(255,255,255,0.03)";
       if (isFraudLink) return "#ef4444";
-      return "#60a5fa";
+      if (isMixedLink) return "#f59e0b";
+      return "#22c55e"; // Bright green if active normal link
     },
     [activeNodeId, visibleGraph, tourActive, tourStep, tourRings]
   );
@@ -994,12 +1019,12 @@ console.log("TOTAL NODES:", data.nodes.length);
           ? (link.target as GraphNode)
           : visibleGraph?.nodes.find((n) => String(n.id) === t);
 
-      const isFraudLink =
-        (sNode?.is_anomalous || (sNode?.anomalyScore ?? 0) >= 0.5) &&
-        (tNode?.is_anomalous || (tNode?.anomalyScore ?? 0) >= 0.5);
+      const sIsFraud = sNode?.is_anomalous || (sNode?.anomalyScore ?? 0) >= 0.5;
+      const tIsFraud = tNode?.is_anomalous || (tNode?.anomalyScore ?? 0) >= 0.5;
+      const isFraudLink = sIsFraud && tIsFraud;
 
-      if (!activeNodeId) return isFraudLink ? 1.2 : 0.6;
-      return s === String(activeNodeId) || t === String(activeNodeId) ? 1.8 : 0.06;
+      if (!activeNodeId) return isFraudLink ? 1.1 : 0.55;
+      return s === String(activeNodeId) || t === String(activeNodeId) ? 1.8 : 0.05;
     },
     [activeNodeId, visibleGraph, tourActive, tourStep, tourRings]
   );
@@ -1451,15 +1476,19 @@ console.log("TOTAL NODES:", data.nodes.length);
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <span style={{ width: 12, height: 12, borderRadius: "50%", background: "#ef4444", display: "inline-block", boxShadow: "0 0 6px #ef4444" }} />
-            <span className="text-gray-300">Fraud / Anomalous</span>
+            <span className="text-gray-300">Fraud / Mule Account</span>
           </div>
           <div className="flex items-center gap-2">
             <span style={{ width: 12, height: 12, borderRadius: "50%", background: "#22c55e", display: "inline-block", boxShadow: "0 0 6px #22c55e" }} />
-            <span className="text-gray-300">Normal</span>
+            <span className="text-gray-300">Normal Safe User</span>
           </div>
           <div className="flex items-center gap-2">
-            <span style={{ width: 24, height: 2, background: "rgba(180,180,200,0.5)", display: "inline-block", borderRadius: 2 }} />
-            <span className="text-gray-300">Transaction</span>
+            <span style={{ width: 22, height: 2, background: "#ef4444", display: "inline-block", borderRadius: 2, boxShadow: "0 0 4px rgba(239,68,68,0.6)" }} />
+            <span className="text-gray-300">Mule / Fraud Edge</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span style={{ width: 22, height: 2, background: "#22c55e", display: "inline-block", borderRadius: 2, boxShadow: "0 0 4px rgba(34,197,94,0.6)" }} />
+            <span className="text-gray-300">Normal Safe Edge</span>
           </div>
         </div>
       </div>
