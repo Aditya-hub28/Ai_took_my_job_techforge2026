@@ -535,12 +535,27 @@ console.log("TOTAL NODES:", data.nodes.length);
       return { nodes: ringNodes, links: rLinks };
     }
 
-    // 4. Default: 3D Fibonacci Globe Sphere Layout
-    const fraudNodes = nodes.filter((n) => n.is_anomalous || (n.anomalyScore ?? 0) >= 0.5);
-    const normalNodes = nodes.filter((n) => !n.is_anomalous && (n.anomalyScore ?? 0) < 0.5);
+    // 4. Default: 100% Ground-Truth Dataset Transactions
+    const degreeMap = new Map<string, number>();
+    rawGraph.links.forEach((l) => {
+      const s = String(resolveId(l.source));
+      const t = String(resolveId(l.target));
+      degreeMap.set(s, (degreeMap.get(s) ?? 0) + 1);
+      degreeMap.set(t, (degreeMap.get(t) ?? 0) + 1);
+    });
 
-    const cappedFraud = fraudNodes.slice(0, 220);
-    const cappedNormal = normalNodes.slice(0, 850);
+    // Select top connected fraud accounts from real dataset
+    const fraudNodes = nodes
+      .filter((n) => n.is_anomalous || (n.anomalyScore ?? 0) >= 0.5)
+      .sort((a, b) => (degreeMap.get(String(b.id)) ?? 0) - (degreeMap.get(String(a.id)) ?? 0));
+
+    // Select top connected normal accounts that have real transactions in dataset
+    const normalNodes = nodes
+      .filter((n) => !n.is_anomalous && (n.anomalyScore ?? 0) < 0.5 && (degreeMap.get(String(n.id)) ?? 0) > 0)
+      .sort((a, b) => (degreeMap.get(String(b.id)) ?? 0) - (degreeMap.get(String(a.id)) ?? 0));
+
+    const cappedFraud = fraudNodes.slice(0, 240);
+    const cappedNormal = normalNodes.slice(0, 800);
     const capped = [...cappedFraud, ...cappedNormal];
 
     // Always ensure all members of the active syndicate tour are included in visible graph
@@ -670,76 +685,50 @@ console.log("TOTAL NODES:", data.nodes.length);
       });
     });
 
-    // ── Links ──
-    // 1. Genuine dataset links
-    const links: GraphLink[] = rawGraph.links.filter(
+    // ── 100% Genuine Ground-Truth Dataset Transactions ONLY ──
+    // Zero synthetic/artificial links! Every link is an authentic transaction from dataset.
+    const allGenuineLinks: GraphLink[] = rawGraph.links.filter(
       (l) =>
-        cappedIds.has(String(resolveId(l.source))) && cappedIds.has(String(resolveId(l.target)))
+        cappedIds.has(String(resolveId(l.source))) &&
+        cappedIds.has(String(resolveId(l.target)))
     );
 
-    const existingPairs = new Set<string>();
-    links.forEach((l) => {
+    const fraudIdSet = new Set(fraudList.map((n) => String(n.id)));
+    const f2fLinks: GraphLink[] = [];
+    const crossLinks: GraphLink[] = [];
+    const n2nLinks: GraphLink[] = [];
+
+    allGenuineLinks.forEach((l) => {
       const s = String(resolveId(l.source));
       const t = String(resolveId(l.target));
-      existingPairs.add(`${s}_${t}`);
-      existingPairs.add(`${t}_${s}`);
+      const sFraud = fraudIdSet.has(s);
+      const tFraud = fraudIdSet.has(t);
+      if (sFraud && tFraud) f2fLinks.push(l);
+      else if (sFraud || tFraud) crossLinks.push(l);
+      else n2nLinks.push(l);
     });
 
-    // 2. Connect normal nodes along the sphere surface to nearest spatial neighbors
-    const stepOffsets = [1, 2, 3, 5, 8, 13];
-    normalList.forEach((node, i) => {
-      const sId = String(node.id);
-      let added = 0;
-      for (const offset of stepOffsets) {
-        if (added >= 2) break;
-        const targetIdx = (i + offset) % normalCount;
-        const targetNode = normalList[targetIdx];
-        if (targetNode && String(targetNode.id) !== sId) {
-          const tId = String(targetNode.id);
-          const key = `${sId}_${tId}`;
-          if (!existingPairs.has(key)) {
-            const dx = (node.fx ?? 0) - (targetNode.fx ?? 0);
-            const dy = (node.fy ?? 0) - (targetNode.fy ?? 0);
-            const dz = (node.fz ?? 0) - (targetNode.fz ?? 0);
-            const dist = Math.hypot(dx, dy, dz);
-            if (dist < 180) {
-              links.push({ source: sId, target: tId, isSynthetic: true } as any);
-              existingPairs.add(key);
-              existingPairs.add(`${tId}_${sId}`);
-              added++;
-            }
+    // Clean balanced sample of real dataset transactions so canvas stays silky 60fps
+    const selectedGenuineLinks = [
+      ...f2fLinks.slice(0, 900),
+      ...n2nLinks.slice(0, 1300),
+      ...crossLinks.slice(0, 450),
+    ];
+
+    // If an active node is selected, guarantee all of its genuine dataset links are included
+    if (activeNodeId) {
+      allGenuineLinks.forEach((l) => {
+        const s = String(resolveId(l.source));
+        const t = String(resolveId(l.target));
+        if (s === String(activeNodeId) || t === String(activeNodeId)) {
+          if (!selectedGenuineLinks.some((sl) => sl === l)) {
+            selectedGenuineLinks.push(l);
           }
         }
-      }
-    });
+      });
+    }
 
-    // 3. Connect each of the 24 rings in a circular ring with glowing red edges
-    ringBuckets.forEach((bucket) => {
-      const count = bucket.length;
-      if (count < 2) return;
-      for (let j = 0; j < count; j++) {
-        const currentId = String(bucket[j].id);
-        const nextId = String(bucket[(j + 1) % count].id);
-        const key = `${currentId}_${nextId}`;
-        if (!existingPairs.has(key)) {
-          links.push({ source: currentId, target: nextId, isSynthetic: true } as any);
-          existingPairs.add(key);
-          existingPairs.add(`${nextId}_${currentId}`);
-        }
-        // Cross chord for structure when 5+ nodes
-        if (count >= 5 && j % 2 === 0) {
-          const chordId = String(bucket[(j + Math.floor(count / 2)) % count].id);
-          const chordKey = `${currentId}_${chordId}`;
-          if (!existingPairs.has(chordKey)) {
-            links.push({ source: currentId, target: chordId, isSynthetic: true } as any);
-            existingPairs.add(chordKey);
-            existingPairs.add(`${chordId}_${currentId}`);
-          }
-        }
-      }
-    });
-
-    return { nodes: capped, links };
+    return { nodes: capped, links: selectedGenuineLinks };
   }, [rawGraph, riskThreshold, effectiveShowOnlyFraud, showOnlyRings, viewMode, activeNodeId, tourActive, tourStep, tourRings]);
 
   // ── Focus / neighbour set ──
@@ -1666,10 +1655,8 @@ console.log("TOTAL NODES:", data.nodes.length);
           if (forceName === "charge") force.strength(-60);
           if (forceName === "link") force.distance(30).strength(0.8);
         } : (forceName: string, force: any) => {
-          if (forceName === "charge") force.strength(-180);
-          if (forceName === "link") {
-            force.distance(50).strength((link: any) => (link?.isSynthetic ? 0.02 : 0.5));
-          }
+          if (forceName === "charge") force.strength(-100);
+          if (forceName === "link") force.distance(50).strength(0.15);
         }}
       />
     </div>
