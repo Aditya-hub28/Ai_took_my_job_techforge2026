@@ -754,76 +754,202 @@ export default function AgenticInvestigationWorkstation({ initialAccount = "1000
           </div>
 
           {/* SVG Graph Visualization */}
-          <div className="w-full h-96 bg-[#050505] rounded-xl border border-white/[0.06] relative overflow-hidden flex items-center justify-center">
-            {graphData && graphData.nodes.length > 0 ? (
-              <svg className="w-full h-full" viewBox="0 0 800 400">
-                {/* Render Links */}
-                {graphData.links.map((l, i) => {
-                  const nodeCount = graphData.nodes.length;
-                  const idx = i % Math.max(1, nodeCount - 1);
-                  const angle = (idx / Math.max(1, nodeCount - 1)) * 2 * Math.PI;
-                  const targetX = 400 + Math.cos(angle) * 160;
-                  const targetY = 200 + Math.sin(angle) * 120;
+          <div className="w-full h-[420px] bg-[#050505] rounded-xl border border-white/[0.06] relative overflow-hidden flex items-center justify-center p-2">
+            {graphData && graphData.nodes.length > 0 ? (() => {
+              // Categorize and compute multi-hop layout coordinates
+              const centralNode = graphData.nodes.find((n) => n.status === "ORIGIN") || graphData.nodes[0];
+              const intermediaries = graphData.nodes.filter((n) => n.status === "SUSPICIOUS" && n.id !== centralNode.id);
+              const frontiers = graphData.nodes.filter((n) => n.status === "FRONTIER");
+              const safeUsers = graphData.nodes.filter((n) => n.status === "NORMAL" || (!["ORIGIN", "SUSPICIOUS", "FRONTIER"].includes(n.status)));
 
-                  return (
-                    <g key={i}>
-                      <line
-                        x1={400}
-                        y1={200}
-                        x2={targetX}
-                        y2={targetY}
-                        stroke="rgba(255,255,255,0.15)"
-                        strokeWidth={1.5}
-                        strokeDasharray={l.amount > 10000 ? "4 4" : "none"}
-                      />
-                    </g>
-                  );
-                })}
+              const posMap: Record<string, { x: number; y: number }> = {};
 
-                {/* Render Counterparty Nodes */}
-                {graphData.nodes.map((n, i) => {
-                  const isCentral = n.status === "ORIGIN";
-                  const isFrontier = n.status === "FRONTIER";
+              // Column 1: Central Origin Node
+              posMap[centralNode.id] = { x: 130, y: 210 };
 
-                  let x = 400;
-                  let y = 200;
+              // Column 2: Intermediaries / Layering Hubs
+              intermediaries.forEach((n, i) => {
+                const total = Math.max(1, intermediaries.length);
+                const step = 280 / Math.max(1, total - 1);
+                const y = total === 1 ? 210 : 70 + i * step;
+                posMap[n.id] = { x: 330, y };
+              });
 
-                  if (!isCentral) {
-                    const angle = ((i - 1) / Math.max(1, graphData.nodes.length - 1)) * 2 * Math.PI;
-                    x = 400 + Math.cos(angle) * 160;
-                    y = 200 + Math.sin(angle) * 120;
-                  }
+              // Column 3: Freeze Frontier Nodes (top-right)
+              frontiers.forEach((n, i) => {
+                const total = Math.max(1, frontiers.length);
+                const step = 160 / Math.max(1, total - 1);
+                const y = total === 1 ? 90 : 50 + i * step;
+                posMap[n.id] = { x: 550, y };
+              });
 
-                  const fillColor = isCentral ? "#ef4444" : isFrontier ? "#CAFF33" : "#3b82f6";
+              // Column 4: Normal / Safe Users & Retail Endpoints (bottom-right)
+              safeUsers.forEach((n, i) => {
+                const total = Math.max(1, safeUsers.length);
+                const step = 170 / Math.max(1, total - 1);
+                const y = total === 1 ? 310 : 220 + i * step;
+                posMap[n.id] = { x: 670, y };
+              });
 
-                  return (
-                    <g key={n.id} className="cursor-pointer group">
-                      <circle
-                        cx={x}
-                        cy={y}
-                        r={isCentral ? 20 : 13}
-                        fill={fillColor}
-                        fillOpacity={0.2}
-                        stroke={fillColor}
-                        strokeWidth={2}
-                      />
-                      <circle cx={x} cy={y} r={isCentral ? 9 : 5} fill={fillColor} />
-                      <text
-                        x={x}
-                        y={y + (isCentral ? 32 : 24)}
-                        textAnchor="middle"
-                        fill="#ffffff"
-                        fontSize={10}
-                        fontFamily="monospace"
-                        fontWeight="bold"
-                      >
-                        #{n.id}
-                      </text>
-                    </g>
-                  );
-                })}
-              </svg>
-            ) : (
+              // Fallback for any unmapped nodes
+              graphData.nodes.forEach((n, i) => {
+                if (!posMap[n.id]) {
+                  const angle = (i / Math.max(1, graphData.nodes.length)) * 2 * Math.PI;
+                  posMap[n.id] = { x: 400 + Math.cos(angle) * 160, y: 210 + Math.sin(angle) * 110 };
+                }
+              });
+
+              return (
+                <svg className="w-full h-full" viewBox="0 0 820 420">
+                  <defs>
+                    <marker id="arrow-red" viewBox="0 0 10 10" refX="21" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                      <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#ef4444" />
+                    </marker>
+                    <marker id="arrow-lime" viewBox="0 0 10 10" refX="21" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                      <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#CAFF33" />
+                    </marker>
+                    <marker id="arrow-green" viewBox="0 0 10 10" refX="21" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                      <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#22c55e" />
+                    </marker>
+                    <marker id="arrow-amber" viewBox="0 0 10 10" refX="21" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                      <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#f59e0b" />
+                    </marker>
+                  </defs>
+
+                  {/* Render Links between real source and target */}
+                  {graphData.links.map((l, i) => {
+                    const src = posMap[l.source];
+                    const tgt = posMap[l.target];
+                    if (!src || !tgt) return null;
+
+                    const targetNode = graphData.nodes.find((n) => n.id === l.target);
+                    const sourceNode = graphData.nodes.find((n) => n.id === l.source);
+
+                    const isToSafe = targetNode?.status === "NORMAL" || sourceNode?.status === "NORMAL";
+                    const isToFrontier = targetNode?.status === "FRONTIER";
+                    const isMuleTransfer = targetNode?.status === "SUSPICIOUS" || sourceNode?.status === "ORIGIN";
+
+                    const strokeColor = isToSafe
+                      ? "rgba(34, 197, 94, 0.6)"
+                      : isToFrontier
+                      ? "rgba(202, 255, 51, 0.75)"
+                      : isMuleTransfer
+                      ? "rgba(239, 68, 68, 0.65)"
+                      : "rgba(245, 158, 11, 0.6)";
+
+                    const markerUrl = isToSafe
+                      ? "url(#arrow-green)"
+                      : isToFrontier
+                      ? "url(#arrow-lime)"
+                      : isMuleTransfer
+                      ? "url(#arrow-red)"
+                      : "url(#arrow-amber)";
+
+                    const midX = (src.x + tgt.x) / 2;
+                    const midY = (src.y + tgt.y) / 2;
+
+                    return (
+                      <g key={i} className="group">
+                        <line
+                          x1={src.x}
+                          y1={src.y}
+                          x2={tgt.x}
+                          y2={tgt.y}
+                          stroke={strokeColor}
+                          strokeWidth={1.8}
+                          markerEnd={markerUrl}
+                          strokeDasharray={isToSafe ? "4 3" : "none"}
+                        />
+                        {l.amount > 0 && (
+                          <g transform={`translate(${midX}, ${midY})`}>
+                            <rect
+                              x={-28}
+                              y={-9}
+                              width={56}
+                              height={18}
+                              rx={4}
+                              fill="#0a0c16"
+                              stroke={strokeColor}
+                              strokeWidth={0.8}
+                            />
+                            <text
+                              x={0}
+                              y={3.5}
+                              textAnchor="middle"
+                              fill="#ffffff"
+                              fontSize={8.5}
+                              fontFamily="monospace"
+                              fontWeight="bold"
+                            >
+                              ₹{l.amount >= 100000 ? `${(l.amount / 100000).toFixed(1)}L` : l.amount >= 1000 ? `${(l.amount / 1000).toFixed(0)}k` : l.amount.toFixed(0)}
+                            </text>
+                          </g>
+                        )}
+                      </g>
+                    );
+                  })}
+
+                  {/* Render Nodes with Role & Status Distinction */}
+                  {graphData.nodes.map((n) => {
+                    const pos = posMap[n.id];
+                    if (!pos) return null;
+
+                    const isCentral = n.status === "ORIGIN";
+                    const isFrontier = n.status === "FRONTIER";
+                    const isNormal = n.status === "NORMAL";
+
+                    const strokeColor = isCentral ? "#ef4444" : isFrontier ? "#CAFF33" : isNormal ? "#22c55e" : "#f59e0b";
+                    const roleTag = isCentral ? "ORIGIN MULE" : isFrontier ? "FREEZE TARGET" : isNormal ? "SAFE USER" : "LAYERING MULE";
+
+                    return (
+                      <g key={n.id} className="cursor-pointer group">
+                        {/* Outer Glow */}
+                        <circle
+                          cx={pos.x}
+                          cy={pos.y}
+                          r={isCentral ? 22 : isNormal ? 14 : 16}
+                          fill={strokeColor}
+                          fillOpacity={0.16}
+                          stroke={strokeColor}
+                          strokeWidth={isCentral ? 2.5 : 1.8}
+                        />
+                        {/* Core Dot */}
+                        <circle
+                          cx={pos.x}
+                          cy={pos.y}
+                          r={isCentral ? 9 : isNormal ? 5.5 : 7}
+                          fill={strokeColor}
+                        />
+                        {/* Account Label */}
+                        <text
+                          x={pos.x}
+                          y={pos.y + (isCentral ? 34 : 26)}
+                          textAnchor="middle"
+                          fill="#ffffff"
+                          fontSize={9.5}
+                          fontFamily="monospace"
+                          fontWeight="bold"
+                        >
+                          #{n.id}
+                        </text>
+                        {/* Role Badge */}
+                        <text
+                          x={pos.x}
+                          y={pos.y + (isCentral ? 45 : 36)}
+                          textAnchor="middle"
+                          fill={strokeColor}
+                          fontSize={7.5}
+                          fontFamily="monospace"
+                          fontWeight="bold"
+                        >
+                          {roleTag}
+                        </text>
+                      </g>
+                    );
+                  })}
+                </svg>
+              );
+            })() : (
               <p className="text-xs text-white/40 font-mono">No graph relationships found for this entity.</p>
             )}
           </div>
