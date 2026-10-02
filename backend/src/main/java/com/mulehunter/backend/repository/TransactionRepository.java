@@ -43,4 +43,11 @@ public interface TransactionRepository
      */
     @Query(value = "{ '$or': [ {'sourceAccount': ?0}, {'targetAccount': ?0} ], 'suspectedFraud': true }", count = true)
     Mono<Long> countSuspiciousNeighbours(String accountId);
+
+    Flux<Transaction> findBySourceAccount(String sourceAccount);
+
+    Flux<Transaction> findByTargetAccount(String targetAccount);
+
+    @Query("{ '$or': [ {'sourceAccount': ?0}, {'targetAccount': ?1} ] }")
+    Flux<Transaction> findBySourceAccountOrTargetAccount(String sourceAccount, String targetAccount);
 }

@@ -18,7 +18,8 @@ import {
   ChevronRight,
   Sparkles,
   Info,
-  DollarSign
+  DollarSign,
+  Bot
 } from "lucide-react";
 
 interface FlowNode {
@@ -439,6 +440,13 @@ export default function MoneyRecoverySimulation({ initialAccount = "10004" }: Mo
               <Sparkles className="w-3 h-3" />
               ⚡ Benchmark Test (V1→M1→M4)
             </button>
+            <a
+              href={`/dashboard?tab=investigation&account=${accountInput}`}
+              className="px-2.5 py-1 rounded-lg text-[11px] font-mono bg-purple-500/15 hover:bg-purple-500/25 border border-purple-500/40 text-purple-300 transition cursor-pointer flex items-center gap-1.5"
+            >
+              <Bot className="w-3 h-3" />
+              🤖 AI Agent Dossier
+            </a>
           </div>
         </div>
 

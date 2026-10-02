@@ -411,8 +411,15 @@ export function NodeInspector({ node, onClose }: NodeInspectorProps) {
           <span>🎯</span>
           <span>Simulate Money Recovery</span>
         </a>
+        <a
+          href={`/dashboard?tab=investigation&account=${node.id}`}
+          className="w-full py-2.5 px-3 rounded-xl bg-purple-600/90 hover:bg-purple-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(168,85,247,0.2)] transition cursor-pointer text-center mt-2"
+        >
+          <span>🤖</span>
+          <span>Launch AI Investigation</span>
+        </a>
         <p className="text-[10px] text-gray-500 font-mono text-center mt-1.5">
-          Launch Freeze Frontier simulation for #{String(node.id)}
+          Autonomous 11-tool forensic audit for #{String(node.id)}
         </p>
       </div>
     </aside>

@@ -5,10 +5,11 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import {
   Zap, RefreshCw, BarChart3, Fingerprint, Shuffle,
-  Link2, Network, Boxes, ChevronRight, Waves, Menu, X, Download, ShieldAlert
+  Link2, Network, Boxes, ChevronRight, Waves, Menu, X, Download, ShieldAlert, Bot
 } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import MoneyRecoverySimulation from "../components/investigation/MoneyRecoverySimulation";
+import AgenticInvestigationWorkstation from "../components/investigation/AgenticInvestigationWorkstation";
 
 const ML_URL  = process.env.NEXT_PUBLIC_ML_URL  ?? "http://localhost:8001";
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL ?? "http://localhost:8082";
@@ -24,6 +25,7 @@ const NAV = [
   { id: "blockchain", label: "Blockchain", icon: Link2       },
   { id: "metrics",    label: "Metrics",    icon: BarChart3   },
   { id: "recovery",   label: "Recovery & Freeze", icon: ShieldAlert },
+  { id: "investigation", label: "AI Investigation", icon: Bot },
 ] as const;
 type View = (typeof NAV)[number]["id"];
 
@@ -2071,23 +2073,24 @@ export default function FraudDashboard() {
   }, []);
 
   const SECTIONS: Record<View, React.ReactNode> = {
-    simulator:  <SimulatorSection />,
-    gnn:        <GnnSection />,
-    eif:        <EifSection />,
-    identity:   <IdentitySection />,
-    fusion:     <FusionSection />,
-    rings:      <RingsSection />,
-    clusters:   <ClustersSection />,
-    blockchain: <BlockchainSection />,
-    metrics:    <MetricsSection />,
-    recovery:   <MoneyRecoverySimulation initialAccount={initialAccount} />,
+    simulator:     <SimulatorSection />,
+    gnn:           <GnnSection />,
+    eif:           <EifSection />,
+    identity:      <IdentitySection />,
+    fusion:        <FusionSection />,
+    rings:         <RingsSection />,
+    clusters:      <ClustersSection />,
+    blockchain:    <BlockchainSection />,
+    metrics:       <MetricsSection />,
+    recovery:      <MoneyRecoverySimulation initialAccount={initialAccount} />,
+    investigation: <AgenticInvestigationWorkstation initialAccount={initialAccount} />,
   };
 
   const NAV_GROUPS = [
     { label: "Detection",    items: NAV.slice(0, 3) },
     { label: "Signals",      items: NAV.slice(3, 6) },
     { label: "Analytics",    items: NAV.slice(6, 9) },
-    { label: "Intervention", items: NAV.slice(9, 10) },
+    { label: "Intervention", items: NAV.slice(9, 11) },
   ];
 
   const SidebarContent = () => (

@@ -108,6 +108,11 @@ const NavContent = ({ session, onLinkClick }: { session: any, onLinkClick?: () =
       Recovery
     </Link>
 
+    <Link href="/dashboard?tab=investigation" onClick={onLinkClick} className="hover:text-[#CAFF33] transition-colors flex items-center gap-1.5 font-bold text-white">
+      <span className="w-1.5 h-1.5 rounded-full bg-[#CAFF33]" />
+      AI Investigation
+    </Link>
+
     <Link href="/network" target="_blank" rel="noopener noreferrer" onClick={onLinkClick} className="hover:text-[#CAFF33] transition-colors">
       Network
     </Link>
