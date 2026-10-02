@@ -1100,10 +1100,10 @@ console.log("TOTAL NODES:", data.nodes.length);
       const isMixedLink = (sIsFraud && !tIsFraud) || (!sIsFraud && tIsFraud);
 
       if (!activeNodeId) {
-        // Red edges for fraud/mule rings, green edges for safe normal users, soft amber for cross-links
-        if (isFraudLink) return "rgba(239, 68, 68, 0.55)";
-        if (isMixedLink) return "rgba(245, 158, 11, 0.30)";
-        return "rgba(34, 197, 94, 0.24)"; // Sleek subtle green edge for non-mule normal users
+        // Clearly visible, rich translucent red for fraud rings and translucent green for safe normal users
+        if (isFraudLink) return "rgba(239, 68, 68, 0.78)"; // Vibrant translucent red
+        if (isMixedLink) return "rgba(245, 158, 11, 0.55)"; // Translucent amber
+        return "rgba(34, 197, 94, 0.52)";                   // Rich translucent emerald green
       }
 
       const connected = s === String(activeNodeId) || t === String(activeNodeId);
@@ -1140,8 +1140,8 @@ console.log("TOTAL NODES:", data.nodes.length);
       const tIsFraud = tNode?.is_anomalous || (tNode?.anomalyScore ?? 0) >= 0.5;
       const isFraudLink = sIsFraud && tIsFraud;
 
-      if (!activeNodeId) return isFraudLink ? 1.1 : 0.55;
-      return s === String(activeNodeId) || t === String(activeNodeId) ? 1.8 : 0.05;
+      if (!activeNodeId) return isFraudLink ? 1.4 : 0.95;
+      return s === String(activeNodeId) || t === String(activeNodeId) ? 2.2 : 0.05;
     },
     [activeNodeId, visibleGraph, tourActive, tourStep, tourRings]
   );
