@@ -47,6 +47,8 @@ mule-va
 mule-ai
 myenv
 mule-ai-311
+.tools/
+.venv/
 
 venv311
 eif/
