@@ -1,5 +1,5 @@
 """
-MuleHunter AI  ·  Inference Service  ·  v3.2
+MuleTrace AI  ·  Inference Service  ·  v3.2
 ==============================================
 FastAPI real-time GNN scoring service.
 
@@ -57,7 +57,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(message)s",
 )
-logger = logging.getLogger("MuleHunter-Inference")
+logger = logging.getLogger("MuleTrace-Inference")
 
 # ──────────────────────────────────────────────────────────────────────────────
 # PATHS
@@ -96,7 +96,7 @@ CRORE_FLOOR                 = 0.72       # minimum score for crore-level transac
 # MODEL
 # ──────────────────────────────────────────────────────────────────────────────
 
-class MuleHunterGNN(torch.nn.Module):
+class MuleTraceGNN(torch.nn.Module):
     def __init__(self, in_channels: int, hidden: int = 128, out: int = 2) -> None:
         super().__init__()
         self.conv1 = SAGEConv(in_channels, hidden)
@@ -326,7 +326,7 @@ RISK_FACTOR_RULES: list[tuple] = [
 # GLOBAL STATE
 # ──────────────────────────────────────────────────────────────────────────────
 
-model:       Optional[MuleHunterGNN] = None
+model:       Optional[MuleTraceGNN] = None
 base_graph:  Optional[Data]          = None
 node_df:     Optional[pd.DataFrame]  = None
 nx_graph:    Optional[nx.DiGraph]    = None
@@ -388,7 +388,7 @@ def _precache_rings(g: nx.DiGraph, account_nodes: set) -> List[Dict[str, Any]]:
     return rings
 
 
-def _build_logit_cache(mdl: MuleHunterGNN, graph: Data) -> None:
+def _build_logit_cache(mdl: MuleTraceGNN, graph: Data) -> None:
     logger.info("Pre-computing logit cache for all known nodes...")
     mdl.eval()
     with torch.no_grad():
@@ -415,7 +415,7 @@ def load_assets() -> None:
         if _initialized:
             return
 
-        logger.info("Initialising MuleHunter AI v3.2...")
+        logger.info("Initialising MuleTrace AI v3.2...")
 
         if not MODEL_PATH.exists() or not GRAPH_PATH.exists():
             logger.error("Required assets missing — run train_model.py first")
@@ -462,7 +462,7 @@ def load_assets() -> None:
                 model_meta = json.load(f)
             hidden_ch = model_meta.get("hidden_channels", 128)
 
-        model = MuleHunterGNN(in_channels=actual_features, hidden=hidden_ch)
+        model = MuleTraceGNN(in_channels=actual_features, hidden=hidden_ch)
         model.load_state_dict(torch.load(MODEL_PATH, map_location="cpu", weights_only=True))
         model.eval()
 
@@ -472,14 +472,14 @@ def load_assets() -> None:
 
         _initialized = True
         ver = model_meta.get("version", "unknown") if model_meta else "unknown"
-        logger.info("MuleHunter AI READY | version=%s", ver)
+        logger.info("MuleTrace AI READY | version=%s", ver)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
 # INFERENCE CORE
 # ──────────────────────────────────────────────────────────────────────────────
 
-def _compute_new_node_baseline(mdl: MuleHunterGNN, graph: Data) -> None:
+def _compute_new_node_baseline(mdl: MuleTraceGNN, graph: Data) -> None:
     global _new_node_baseline
 
     mdl.eval()
@@ -704,7 +704,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title       ="MuleHunter AI — Elite Fraud Detection",
+    title       ="MuleTrace AI — Elite Fraud Detection",
     description ="Real-time GNN-based mule account detection for UPI / fintech",
     version     ="3.2.0",
     lifespan    =lifespan,

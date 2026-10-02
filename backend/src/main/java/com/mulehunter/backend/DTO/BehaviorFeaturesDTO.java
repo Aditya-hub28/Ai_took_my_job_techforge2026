@@ -1,4 +1,4 @@
-package com.mulehunter.backend.DTO;
+package com.MuleTrace.backend.DTO;
 
 /**
  * Step 5 — Behavioral Feature Vector sent to ML service.

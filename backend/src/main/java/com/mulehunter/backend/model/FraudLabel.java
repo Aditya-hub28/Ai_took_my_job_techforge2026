@@ -1,4 +1,4 @@
-package com.mulehunter.backend.model;
+package com.MuleTrace.backend.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;

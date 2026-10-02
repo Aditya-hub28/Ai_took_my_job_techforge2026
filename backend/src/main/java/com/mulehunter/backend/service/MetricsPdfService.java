@@ -1,8 +1,8 @@
-package com.mulehunter.backend.service;
+package com.MuleTrace.backend.service;
 
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.*;
-import com.mulehunter.backend.DTO.MetricsResponse;
+import com.MuleTrace.backend.DTO.MetricsResponse;
 import org.springframework.stereotype.Service;
 
 import java.awt.Color;
@@ -14,7 +14,7 @@ import java.time.format.DateTimeFormatter;
 @Service
 public class MetricsPdfService {
 
-    // ── Brand colours (alertixAI Dark Theme) ─────────────────
+    // ── Brand colours (MuleTrace Dark Theme) ─────────────────
     private static final Color C_LIME    = new Color(0xCA, 0xFF, 0x33);
     private static final Color C_BLACK   = new Color(0x08, 0x08, 0x08);
     private static final Color C_DARK    = new Color(0x12, 0x12, 0x12);
@@ -68,7 +68,7 @@ public class MetricsPdfService {
         cb.fill();
 
         // Header
-        Paragraph logo = new Paragraph("alertixAI", F_DISPLAY);
+        Paragraph logo = new Paragraph("MuleTrace", F_DISPLAY);
         doc.add(logo);
         Paragraph sub = new Paragraph("AI Intelligence System · Model Evaluation", F_BODY);
         doc.add(sub);
@@ -258,7 +258,7 @@ public class MetricsPdfService {
                 cb.beginText();
                 cb.setFontAndSize(bf, 7);
                 cb.setColorFill(C_GREY);
-                cb.showTextAligned(Element.ALIGN_LEFT, "alertixAI PERFORMANCE REPORT", document.leftMargin(), 10, 0);
+                cb.showTextAligned(Element.ALIGN_LEFT, "MuleTrace PERFORMANCE REPORT", document.leftMargin(), 10, 0);
                 cb.showTextAligned(Element.ALIGN_RIGHT, "Page " + writer.getPageNumber(), w - document.rightMargin(), 10, 0);
                 cb.endText();
             } catch (Exception e) {}

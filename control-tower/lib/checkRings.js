@@ -1,6 +1,6 @@
 const { MongoClient } = require('mongodb');
 async function run() {
-  const client = new MongoClient('mongodb://127.0.0.1:27017/mule_hunter_auth');
+  const client = new MongoClient('mongodb://127.0.0.1:27017/muletrace_auth');
   await client.connect();
   const db = client.db();
   const ringNodes = await db.collection('nodes').find({ ring_ids: { $exists: true, $ne: [] } }).toArray();

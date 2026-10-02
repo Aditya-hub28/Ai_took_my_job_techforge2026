@@ -1,4 +1,4 @@
-package com.mulehunter.backend.controller;
+package com.MuleTrace.backend.controller;
 
 import java.util.List;
 
@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import com.mulehunter.backend.model.AnomalyScore;
-import com.mulehunter.backend.repository.AnomalyScoreRepository;
-import com.mulehunter.backend.DTO.AnomalyScoreDTO;
-import com.mulehunter.backend.service.AnomalyScoreService;
+import com.MuleTrace.backend.model.AnomalyScore;
+import com.MuleTrace.backend.repository.AnomalyScoreRepository;
+import com.MuleTrace.backend.DTO.AnomalyScoreDTO;
+import com.MuleTrace.backend.service.AnomalyScoreService;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

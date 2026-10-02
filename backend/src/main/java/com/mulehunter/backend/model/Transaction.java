@@ -1,4 +1,4 @@
-package com.mulehunter.backend.model;
+package com.MuleTrace.backend.model;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package com.mulehunter.backend.security;
+package com.MuleTrace.backend.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
 
   if (apiKey) {
     try {
-      const prompt = `You are an AML (anti-money laundering) analyst assistant for a fraud detection system called alertixAI.
+      const prompt = `You are an AML (anti-money laundering) analyst assistant for a fraud detection system called MuleTrace.
 
 Account details:
 - Account ID: ACC${nodeId}

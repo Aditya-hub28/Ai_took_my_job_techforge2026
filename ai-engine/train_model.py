@@ -1,5 +1,5 @@
 """
-MuleHunter AI  ·  GNN Trainer  ·  v5.0
+MuleTrace AI  ·  GNN Trainer  ·  v5.0
 ========================================
 Architecture: GraphSAGE + GAT Hybrid
 
@@ -41,7 +41,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(message)s",
 )
-logger = logging.getLogger("MuleHunter-Trainer")
+logger = logging.getLogger("MuleTrace-Trainer")
 
 # ──────────────────────────────────────────────────────────────────────────────
 # PATHS
@@ -71,7 +71,7 @@ CHECK_INTERVAL  = 10     # evaluate every N epochs (less CPU hammering)
 # GNN ARCHITECTURE
 # ──────────────────────────────────────────────────────────────────────────────
 
-class MuleHunterGNN(torch.nn.Module):
+class MuleTraceGNN(torch.nn.Module):
     """
     SAGE → GAT(4 heads) → SAGE with residual skip connection.
 
@@ -149,7 +149,7 @@ class MuleHunterGNN(torch.nn.Module):
 # ──────────────────────────────────────────────────────────────────────────────
 
 def evaluate(
-    model:     MuleHunterGNN,
+    model:     MuleTraceGNN,
     data:      Data,
     mask:      torch.Tensor,
     threshold: float = 0.5,
@@ -173,7 +173,7 @@ def evaluate(
 
 
 def find_best_threshold(
-    model: MuleHunterGNN,
+    model: MuleTraceGNN,
     data:  Data,
     mask:  torch.Tensor,
 ) -> tuple[float, float]:
@@ -213,7 +213,7 @@ def train() -> None:
     torch.backends.cudnn.deterministic = True
 
     logger.info("=" * 65)
-    logger.info("MuleHunter GNN Trainer v5.0")
+    logger.info("MuleTrace GNN Trainer v5.0")
     logger.info("=" * 65)
 
     if not GRAPH_PATH.exists():
@@ -240,7 +240,7 @@ def train() -> None:
     logger.info("  Device: %s", device)
 
     data  = data.to(device)
-    model = MuleHunterGNN(in_channels=in_channels).to(device)
+    model = MuleTraceGNN(in_channels=in_channels).to(device)
 
     # ── [F3/F4] Weighted CrossEntropy — weights from training split only ───────
     train_labels = data.y[data.train_mask]
@@ -396,7 +396,7 @@ def train() -> None:
         json.dump(report, f, indent=2)
 
     meta = {
-        "version":           "MuleHunter-V5",
+        "version":           "MuleTrace-V5",
         "in_channels":       in_channels,
         "hidden_channels":   HIDDEN_CHANNELS,
         "test_f1":           test_metrics["f1"],
@@ -410,7 +410,7 @@ def train() -> None:
 
     logger.info("\nModel  → %s", MODEL_PATH)
     logger.info("Report → %s", EVAL_REPORT)
-    logger.info("TRAINING COMPLETE — MuleHunter V5")
+    logger.info("TRAINING COMPLETE — MuleTrace V5")
 
 
 if __name__ == "__main__":

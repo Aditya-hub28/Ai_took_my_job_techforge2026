@@ -1,9 +1,9 @@
-package com.mulehunter.backend.service;
+package com.MuleTrace.backend.service;
 
-import com.mulehunter.backend.model.AccountAggregate;
-import com.mulehunter.backend.model.IdentityEvent;
-import com.mulehunter.backend.repository.AccountAggregateRepository;
-import com.mulehunter.backend.repository.IdentityEventRepository;
+import com.MuleTrace.backend.model.AccountAggregate;
+import com.MuleTrace.backend.model.IdentityEvent;
+import com.MuleTrace.backend.repository.AccountAggregateRepository;
+import com.MuleTrace.backend.repository.IdentityEventRepository;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 

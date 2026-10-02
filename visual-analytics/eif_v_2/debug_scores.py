@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import f1_score
 print("sklearn imported")
 
-df = pd.read_csv("/home/rupali-jha/MULE_HUNTER/shared-data/eif_features.csv")
+df = pd.read_csv("../../shared-data/eif_features.csv")
 y  = df["is_fraud"].values
 print("df loaded")
 RAW_FEATURES = ["velocity_score", "burst_score", "suspicious_neighbor_count", "ip_reuse_count", "ja3_reuse_count", "community_fraud_rate_feat", "ring_membership_feat", "network_risk_score"]

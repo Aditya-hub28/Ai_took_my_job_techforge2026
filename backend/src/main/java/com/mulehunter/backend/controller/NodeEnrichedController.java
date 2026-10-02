@@ -1,12 +1,12 @@
-package com.mulehunter.backend.controller;
+package com.MuleTrace.backend.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.mulehunter.backend.model.NodeEnriched;
-import com.mulehunter.backend.repository.NodeEnrichedRepository;
+import com.MuleTrace.backend.model.NodeEnriched;
+import com.MuleTrace.backend.repository.NodeEnrichedRepository;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

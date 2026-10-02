@@ -1,10 +1,10 @@
-package com.mulehunter.backend.controller;
+package com.MuleTrace.backend.controller;
 
-import com.mulehunter.backend.DTO.MetricsResponse;
-import com.mulehunter.backend.DTO.StatsResponse;
-import com.mulehunter.backend.service.ModelEvaluationService;
-import com.mulehunter.backend.service.StatsService;
-import com.mulehunter.backend.service.MetricsPdfService;
+import com.MuleTrace.backend.DTO.MetricsResponse;
+import com.MuleTrace.backend.DTO.StatsResponse;
+import com.MuleTrace.backend.service.ModelEvaluationService;
+import com.MuleTrace.backend.service.StatsService;
+import com.MuleTrace.backend.service.MetricsPdfService;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -66,7 +66,7 @@ public class AdminEvaluationController {
 
                 String ts = ZonedDateTime.now(ZoneOffset.UTC)
                         .format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
-                String fn = "mule-hunter-metrics-" + ts + ".pdf";
+                String fn = "MuleTrace-metrics-" + ts + ".pdf";
 
                 ContentDisposition cd = ContentDisposition.builder("attachment")
                         .filename(fn)

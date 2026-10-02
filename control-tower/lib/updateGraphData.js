@@ -2,7 +2,7 @@ require("dotenv").config({ path: "../.env.local" });
 const { MongoClient } = require("mongodb");
 
 async function updateGraphData() {
-  const uri = process.env.MONGODB_URI || "mongodb://localhost:27017/mule_hunter_auth";
+  const uri = process.env.MONGODB_URI || "mongodb://localhost:27017/muletrace_auth";
   const client = new MongoClient(uri);
   try {
     await client.connect();

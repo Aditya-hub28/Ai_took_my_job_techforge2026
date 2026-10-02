@@ -1,6 +1,6 @@
-package com.mulehunter.backend.repository;
+package com.MuleTrace.backend.repository;
 
-import com.mulehunter.backend.model.ModelPerformanceMetrics;
+import com.MuleTrace.backend.model.ModelPerformanceMetrics;
 
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;

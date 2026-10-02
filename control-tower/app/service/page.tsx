@@ -60,7 +60,7 @@ export default function ServicePage() {
             </div>
 
             <div className="text-gray-500 max-w-2xl leading-relaxed text-sm md:text-base">
-              MuleHunter provides specialized consultancy and integration services for 
+              MuleTrace provides specialized consultancy and integration services for 
               high-volume payment providers.
             </div>
 

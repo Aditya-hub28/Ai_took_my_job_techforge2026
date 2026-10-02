@@ -237,9 +237,9 @@ console.log("TOTAL NODES:", data.nodes.length);
 
         // ── DEBUG: log first raw node so we can see exact field names ──
         if (data.nodes?.length > 0) {
-          console.log("[MuleHunter] Raw node sample:", JSON.stringify(data.nodes[0], null, 2));
-          console.log("[MuleHunter] Raw link sample:", JSON.stringify(data.links?.[0], null, 2));
-          console.log("[MuleHunter] Top-level keys:", Object.keys(data));
+          console.log("[MuleTrace] Raw node sample:", JSON.stringify(data.nodes[0], null, 2));
+          console.log("[MuleTrace] Raw link sample:", JSON.stringify(data.links?.[0], null, 2));
+          console.log("[MuleTrace] Top-level keys:", Object.keys(data));
         }
 
         const nodes: GraphNode[] = data.nodes.map((n: any): GraphNode => {
@@ -306,7 +306,7 @@ console.log("TOTAL NODES:", data.nodes.length);
             target: String(l.target ?? l.to ?? l.targetId),
           }));
 
-        console.log(`[MuleHunter] Mapped: ${nodes.length} nodes, ${nodes.filter(n=>n.is_anomalous).length} fraud, ${links.length} links`);
+        console.log(`[MuleTrace] Mapped: ${nodes.length} nodes, ${nodes.filter(n=>n.is_anomalous).length} fraud, ${links.length} links`);
 
         setRawGraph({ nodes, links });
         const fraudCount = nodes.filter((n) => n.is_anomalous).length;
@@ -407,7 +407,7 @@ console.log("TOTAL NODES:", data.nodes.length);
             };
           });
 
-          console.log(`[MuleHunter] Loaded ${liveRings.length} authentic syndicates with threat scores:`, liveRings.map(r => `${r.label}: ${r.syndicateScore}% (${formatRupees(r.totalVolume)})`));
+          console.log(`[MuleTrace] Loaded ${liveRings.length} authentic syndicates with threat scores:`, liveRings.map(r => `${r.label}: ${r.syndicateScore}% (${formatRupees(r.totalVolume)})`));
           setTourRings(liveRings);
         } else {
           // Fallback to /detect-rings if no node ringIds found
@@ -443,7 +443,7 @@ console.log("TOTAL NODES:", data.nodes.length);
               }
             }
           } catch (e) {
-            console.warn("[MuleHunter] Tour rings fallback active", e);
+            console.warn("[MuleTrace] Tour rings fallback active", e);
           }
         }
       } catch (err) {

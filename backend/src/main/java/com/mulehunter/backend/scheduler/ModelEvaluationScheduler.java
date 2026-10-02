@@ -1,6 +1,6 @@
-package com.mulehunter.backend.scheduler;
+package com.MuleTrace.backend.scheduler;
 
-import com.mulehunter.backend.service.ModelEvaluationService;
+import com.MuleTrace.backend.service.ModelEvaluationService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 

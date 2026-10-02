@@ -1,12 +1,12 @@
-package com.mulehunter.backend.service;
+package com.MuleTrace.backend.service;
 
 import java.time.Instant;
 
 import org.springframework.stereotype.Service;
 
-import com.mulehunter.backend.DTO.AnomalyScoreDTO;
-import com.mulehunter.backend.model.AnomalyScore;
-import com.mulehunter.backend.repository.AnomalyScoreRepository;
+import com.MuleTrace.backend.DTO.AnomalyScoreDTO;
+import com.MuleTrace.backend.model.AnomalyScore;
+import com.MuleTrace.backend.repository.AnomalyScoreRepository;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

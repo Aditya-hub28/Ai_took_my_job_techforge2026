@@ -2079,7 +2079,7 @@ export default function FraudDashboard() {
             <div className="w-2.5 h-2.5 rounded-sm bg-[#CAFF33]" />
           </div>
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/70">MuleHunter AI</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/70">MuleTrace AI</p>
             <p className="text-[9px] text-white/60 font-mono">Fraud Intelligence</p>
           </div>
         </div>

@@ -1,6 +1,6 @@
-package com.mulehunter.backend.service;
+package com.MuleTrace.backend.service;
 
-import com.mulehunter.backend.model.Transaction;
+import com.MuleTrace.backend.model.Transaction;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;

@@ -1,8 +1,8 @@
-package com.mulehunter.backend.service;
+package com.MuleTrace.backend.service;
 
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.*;
-import com.mulehunter.backend.DTO.StatsResponse;
+import com.MuleTrace.backend.DTO.StatsResponse;
 import org.springframework.stereotype.Service;
 
 import java.awt.Color;
@@ -87,7 +87,7 @@ public class AuditPdfService {
         cb.fill();
 
         // Logo wordmark
-        Paragraph logo = new Paragraph("alertixAI", F_DISPLAY);
+        Paragraph logo = new Paragraph("MuleTrace", F_DISPLAY);
         logo.setAlignment(Element.ALIGN_LEFT);
         logo.setSpacingBefore(60);
         doc.add(logo);
@@ -303,7 +303,7 @@ public class AuditPdfService {
 
             "CONFIDENTIAL: This document is generated automatically from live system data and is " +
             "intended for internal use and regulatory compliance only. Do not distribute externally " +
-            "without authorisation from the alertixAI system administrator.",
+            "without authorisation from the MuleTrace system administrator.",
         };
 
         for (String p : paras) {
@@ -517,7 +517,7 @@ public class AuditPdfService {
             // Left text
             cb.showTextAligned(
                     Element.ALIGN_LEFT,
-                    "alertixAI · NETWORK PERFORMANCE AUDIT · CONFIDENTIAL",
+                    "MuleTrace · NETWORK PERFORMANCE AUDIT · CONFIDENTIAL",
                     document.leftMargin(),
                     10,
                     0

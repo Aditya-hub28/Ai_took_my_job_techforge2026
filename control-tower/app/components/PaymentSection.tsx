@@ -393,7 +393,7 @@ function buildDemoFraudResponse(): TransactionResponse {
 }
 
 const DEMO_SCENARIOS: DemoScenario[] = [
-  { upiId: "ratnesh@ybl", account: "23460024", build: buildDemoApproveResponse },
+  { upiId: "aditya@ybl", account: "23460024", build: buildDemoApproveResponse },
   { upiId: "riya@ybl", account: "62022519", build: buildDemoFraudResponse },
 ];
 
@@ -518,14 +518,14 @@ export default function PaymentSection({
           <button
             type="button"
             onClick={() => {
-              setToUpi("ratnesh@ybl");
+              setToUpi("aditya@ybl");
               setToAccount("23460024");
               setAmount("1500");
               setNote("College fee payment");
             }}
             className="px-2.5 py-1 rounded-lg text-[11px] font-mono border border-green-500/30 bg-green-500/10 text-green-400 hover:bg-green-500/20 transition cursor-pointer"
           >
-            🟢 Safe (Ratnesh)
+            🟢 Safe (Normal User)
           </button>
           <button
             type="button"
@@ -614,7 +614,7 @@ export default function PaymentSection({
           {loading ? (
             <>
               <span className="w-4 h-4 border-2 border-black/50 border-t-transparent rounded-full animate-spin" />
-              Running MuleHunter…
+              Running MuleTrace…
             </>
           ) : (
             <>Send & Verify →</>
@@ -666,7 +666,7 @@ export default function PaymentSection({
             )}
             {result.decision === "BLOCK" && (
               <p className="m-0">
-                High-risk transaction detected by MuleHunter GNN + EIF.{" "}
+                High-risk transaction detected by MuleTrace GNN + EIF.{" "}
                 <strong className="text-red-400">Transaction blocked.</strong>
               </p>
             )}

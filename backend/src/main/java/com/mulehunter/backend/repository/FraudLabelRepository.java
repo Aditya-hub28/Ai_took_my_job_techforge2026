@@ -1,6 +1,6 @@
-package com.mulehunter.backend.repository;
+package com.MuleTrace.backend.repository;
 
-import com.mulehunter.backend.model.FraudLabel;
+import com.MuleTrace.backend.model.FraudLabel;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Mono;
 

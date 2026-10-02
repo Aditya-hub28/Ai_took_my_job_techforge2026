@@ -1,5 +1,5 @@
 """
-MuleHunter AI  ·  Full Test Suite  
+MuleTrace AI  ·  Full Test Suite  
 ============================================
 Run:
     python test_my_work.py [--base-url http://localhost:8001] [--shared-data ../shared-data]
@@ -21,7 +21,7 @@ import pandas as pd
 # ──────────────────────────────────────────────────────────────────────────────
 # CLI args
 # ──────────────────────────────────────────────────────────────────────────────
-parser = argparse.ArgumentParser(description="MuleHunter test suite")
+parser = argparse.ArgumentParser(description="MuleTrace test suite")
 parser.add_argument(
     "--base-url",
     default="http://localhost:8001",
@@ -408,7 +408,7 @@ if failed > 0:
     print()
 
 if failed == 0:
-    print("\n  🎉  All checks passed. MuleHunter is production-ready.")
+    print("\n  🎉  All checks passed. MuleTrace is production-ready.")
 else:
     print("  Fix the ❌ items above before connecting to Spring Boot.")
 

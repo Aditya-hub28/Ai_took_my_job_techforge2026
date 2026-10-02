@@ -1,6 +1,6 @@
-package com.mulehunter.backend.repository;
+package com.MuleTrace.backend.repository;
 
-import com.mulehunter.backend.model.Nodes;
+import com.MuleTrace.backend.model.Nodes;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import reactor.core.publisher.Mono;
 

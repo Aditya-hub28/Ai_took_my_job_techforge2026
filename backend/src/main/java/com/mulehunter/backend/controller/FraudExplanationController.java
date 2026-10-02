@@ -1,4 +1,4 @@
-package com.mulehunter.backend.controller;
+package com.MuleTrace.backend.controller;
 
 import java.util.List;
 import java.time.Instant;
@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import com.mulehunter.backend.model.FraudExplanation;
-import com.mulehunter.backend.DTO.FraudExplanationDTO;
-import com.mulehunter.backend.repository.FraudExplanationRepository;
+import com.MuleTrace.backend.model.FraudExplanation;
+import com.MuleTrace.backend.DTO.FraudExplanationDTO;
+import com.MuleTrace.backend.repository.FraudExplanationRepository;
 
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Flux;

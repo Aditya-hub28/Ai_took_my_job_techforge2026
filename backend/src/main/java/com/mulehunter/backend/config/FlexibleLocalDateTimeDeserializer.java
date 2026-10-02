@@ -1,4 +1,4 @@
-package com.mulehunter.backend.config;
+package com.MuleTrace.backend.config;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;

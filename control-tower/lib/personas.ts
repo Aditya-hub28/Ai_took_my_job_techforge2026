@@ -1,4 +1,4 @@
-// Pre-seeded demo personas for MuleHunter Payment Gateway
+// Pre-seeded demo personas for MuleTrace Payment Gateway
 // Each maps to a graph node ID that produces a reliable fraud decision outcome
 
 export interface Persona {

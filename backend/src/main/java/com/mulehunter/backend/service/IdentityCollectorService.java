@@ -1,9 +1,9 @@
-package com.mulehunter.backend.service;
+package com.MuleTrace.backend.service;
 
 import org.springframework.stereotype.Service;
 
-import com.mulehunter.backend.model.Transaction;
-import com.mulehunter.backend.repository.TransactionRepository;
+import com.MuleTrace.backend.model.Transaction;
+import com.MuleTrace.backend.repository.TransactionRepository;
 
 import reactor.core.publisher.Mono;
 

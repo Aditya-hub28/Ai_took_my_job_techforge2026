@@ -1,4 +1,4 @@
-package com.mulehunter.backend.controller;
+package com.MuleTrace.backend.controller;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;

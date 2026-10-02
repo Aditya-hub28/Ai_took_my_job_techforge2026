@@ -1,4 +1,4 @@
-package com.mulehunter.backend.controller;
+package com.MuleTrace.backend.controller;
 
 import java.time.Instant;
 import java.util.List;
@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import com.mulehunter.backend.repository.ShapExplanationRepository;
-import com.mulehunter.backend.DTO.ShapExplanationDTO;
-import com.mulehunter.backend.model.ShapExplanation;
+import com.MuleTrace.backend.repository.ShapExplanationRepository;
+import com.MuleTrace.backend.DTO.ShapExplanationDTO;
+import com.MuleTrace.backend.model.ShapExplanation;
 
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Flux;

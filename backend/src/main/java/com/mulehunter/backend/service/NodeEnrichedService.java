@@ -1,11 +1,11 @@
-package com.mulehunter.backend.service;
+package com.MuleTrace.backend.service;
 
 import java.time.Instant;
 
 import org.springframework.stereotype.Service;
 
-import com.mulehunter.backend.model.NodeEnriched;
-import com.mulehunter.backend.repository.NodeEnrichedRepository;
+import com.MuleTrace.backend.model.NodeEnriched;
+import com.MuleTrace.backend.repository.NodeEnrichedRepository;
 
 import reactor.core.publisher.Mono;
 

@@ -3,7 +3,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
 export const metadata = {
-  title: "Live Demo — MuleHunter",
+  title: "Live Demo — MuleTrace",
   description: "Real-time UPI payment gateway with fraud detection",
 };
 
@@ -32,7 +32,7 @@ export default function DemoPage() {
             </h1>
 
             <p className="text-gray-400 text-xs leading-relaxed max-w-lg mb-6">
-              Every transaction runs through the full MuleHunter pipeline — GNN graph scoring,
+              Every transaction runs through the full MuleTrace pipeline — GNN graph scoring,
               Extended Isolation Forest anomaly detection, JA3 fingerprinting, and behavioral
               analysis — before a verdict is returned in under 50ms.
             </p>

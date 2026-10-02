@@ -1,4 +1,4 @@
-package com.mulehunter.backend.util;
+package com.MuleTrace.backend.util;
 
 public class MetricCalculator {
 

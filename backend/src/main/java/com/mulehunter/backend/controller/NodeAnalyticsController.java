@@ -1,13 +1,13 @@
-package com.mulehunter.backend.controller;
+package com.MuleTrace.backend.controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import com.mulehunter.backend.model.AnomalyScore;
-import com.mulehunter.backend.model.FraudExplanation;
-import com.mulehunter.backend.repository.*;
-import com.mulehunter.backend.DTO.NodeAnalyticsResponse;
+import com.MuleTrace.backend.model.AnomalyScore;
+import com.MuleTrace.backend.model.FraudExplanation;
+import com.MuleTrace.backend.repository.*;
+import com.MuleTrace.backend.DTO.NodeAnalyticsResponse;
 import reactor.core.publisher.Mono;
 
 @RestController

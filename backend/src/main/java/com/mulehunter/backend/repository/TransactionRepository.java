@@ -1,9 +1,9 @@
-package com.mulehunter.backend.repository;
+package com.MuleTrace.backend.repository;
 
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 
-import com.mulehunter.backend.model.Transaction;
+import com.MuleTrace.backend.model.Transaction;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

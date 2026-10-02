@@ -1,8 +1,8 @@
-package com.mulehunter.backend.repository;
+package com.MuleTrace.backend.repository;
 
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 
-import com.mulehunter.backend.model.AnomalyScore;
+import com.MuleTrace.backend.model.AnomalyScore;
 
 import reactor.core.publisher.Mono;
 

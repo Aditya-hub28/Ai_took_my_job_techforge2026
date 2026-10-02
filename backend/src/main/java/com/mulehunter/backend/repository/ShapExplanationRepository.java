@@ -1,7 +1,7 @@
-package com.mulehunter.backend.repository;
+package com.MuleTrace.backend.repository;
 
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
-import com.mulehunter.backend.model.ShapExplanation;
+import com.MuleTrace.backend.model.ShapExplanation;
 import reactor.core.publisher.Flux;
 
 public interface ShapExplanationRepository

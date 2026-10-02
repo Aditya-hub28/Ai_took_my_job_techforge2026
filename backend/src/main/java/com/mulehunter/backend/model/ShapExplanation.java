@@ -1,4 +1,4 @@
-package com.mulehunter.backend.model;
+package com.MuleTrace.backend.model;
 
 import java.time.Instant;
 import java.util.List;

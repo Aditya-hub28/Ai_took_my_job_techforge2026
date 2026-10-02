@@ -1,5 +1,5 @@
 """
-MuleHunter AI  ·  Data Generator  ·  v3.0
+MuleTrace AI  ·  Data Generator  ·  v3.0
 ==========================================
 Transforms the IEEE-CIS Kaggle dataset into a rich fraud graph with:
 
@@ -25,7 +25,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(message)s",
 )
-logger = logging.getLogger("MuleHunter-DataGen")
+logger = logging.getLogger("MuleTrace-DataGen")
 
 # ──────────────────────────────────────────────────────────────────────────────
 # PATHS
@@ -471,7 +471,7 @@ def build_edges(df: pd.DataFrame) -> pd.DataFrame:
 def generate_dataset(nrows: int = 590_540):
     """Full pipeline: Load → Feature-engineer → Save."""
     logger.info("=" * 60)
-    logger.info("MuleHunter Data Generator v3.0")
+    logger.info("MuleTrace Data Generator v3.0")
     logger.info("=" * 60)
 
     df    = load_kaggle_data(nrows)

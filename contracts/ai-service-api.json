@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "alertixAI AI Engine",
+    "title": "MuleTrace AI Engine",
     "version": "0.1.0"
   },
   "paths": {

@@ -1,5 +1,5 @@
 """
-MuleHunter AI  ·  Feature Engineering  ·  v3.0
+MuleTrace AI  ·  Feature Engineering  ·  v3.0
 ================================================
 Graph-level feature extraction pipeline:
 
@@ -45,7 +45,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(message)s",
 )
-logger = logging.getLogger("MuleHunter-FeatureEng")
+logger = logging.getLogger("MuleTrace-FeatureEng")
 
 # ──────────────────────────────────────────────────────────────────────────────
 # PATHS
@@ -291,7 +291,7 @@ def build_graph_data() -> Data:
     torch.backends.cudnn.deterministic = True
 
     logger.info("=" * 60)
-    logger.info("MuleHunter Feature Engineering v3.0")
+    logger.info("MuleTrace Feature Engineering v3.0")
     logger.info("=" * 60)
 
     # 1. Load raw data

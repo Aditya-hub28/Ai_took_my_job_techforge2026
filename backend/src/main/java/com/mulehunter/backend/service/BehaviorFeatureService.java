@@ -1,8 +1,8 @@
-package com.mulehunter.backend.service;
+package com.MuleTrace.backend.service;
 
-import com.mulehunter.backend.DTO.BehaviorFeaturesDTO;
-import com.mulehunter.backend.model.AccountAggregate;
-import com.mulehunter.backend.repository.AccountAggregateRepository;
+import com.MuleTrace.backend.DTO.BehaviorFeaturesDTO;
+import com.MuleTrace.backend.model.AccountAggregate;
+import com.MuleTrace.backend.repository.AccountAggregateRepository;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 

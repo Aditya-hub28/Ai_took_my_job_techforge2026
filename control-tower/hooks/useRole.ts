@@ -37,7 +37,7 @@ function decodeJWT(token: string): DecodedJWT {
 
 function getTokenFromStorage(): string | null {
   if (typeof window === "undefined") return null;
-  // Try common storage keys used by the existing MuleHunter auth
+  // Try common storage keys used by the existing MuleTrace auth
   return (
     localStorage.getItem("token") ||
     localStorage.getItem("jwt") ||

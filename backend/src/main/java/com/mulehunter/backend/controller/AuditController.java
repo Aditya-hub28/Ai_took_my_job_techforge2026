@@ -1,8 +1,8 @@
-package com.mulehunter.backend.controller;
+package com.MuleTrace.backend.controller;
 
-import com.mulehunter.backend.DTO.StatsResponse;
-import com.mulehunter.backend.service.AuditPdfService;
-import com.mulehunter.backend.service.StatsService;
+import com.MuleTrace.backend.DTO.StatsResponse;
+import com.MuleTrace.backend.service.AuditPdfService;
+import com.MuleTrace.backend.service.StatsService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -35,7 +35,7 @@ public class AuditController {
      *
      * Response headers:
      *   Content-Type:        application/pdf
-     *   Content-Disposition: attachment; filename="mule-hunter-audit-<timestamp>.pdf"
+     *   Content-Disposition: attachment; filename="MuleTrace-audit-<timestamp>.pdf"
      */
     @GetMapping("/audit/download")
     public Mono<ResponseEntity<byte[]>> downloadAudit() {
@@ -45,7 +45,7 @@ public class AuditController {
 
             String timestamp = ZonedDateTime.now(ZoneOffset.UTC)
                     .format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
-            String filename  = "mule-hunter-audit-" + timestamp + ".pdf";
+            String filename  = "MuleTrace-audit-" + timestamp + ".pdf";
 
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_PDF)

@@ -7,9 +7,9 @@ from torch_geometric.data import Data
 from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_score, confusion_matrix
 import sys
 
-# Add ai-engine to path to import MuleHunterGNN
+# Add ai-engine to path to import MuleTraceGNN
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from train_model import MuleHunterGNN, HIDDEN_CHANNELS
+from train_model import MuleTraceGNN, HIDDEN_CHANNELS
 
 if os.path.exists("/app/shared-data"):
     SHARED_DATA = Path("/app/shared-data")
@@ -28,7 +28,7 @@ def run_eval():
     
     print(f"🚀 Loading model from {MODEL_PATH}...")
     in_channels = data.x.shape[1]
-    model = MuleHunterGNN(in_channels=in_channels, hidden=HIDDEN_CHANNELS)
+    model = MuleTraceGNN(in_channels=in_channels, hidden=HIDDEN_CHANNELS)
     model.load_state_dict(torch.load(MODEL_PATH, map_location="cpu", weights_only=True))
     model.eval()
     

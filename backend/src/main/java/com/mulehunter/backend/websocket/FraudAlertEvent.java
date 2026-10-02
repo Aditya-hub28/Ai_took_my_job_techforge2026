@@ -1,4 +1,4 @@
-package com.mulehunter.backend.websocket;
+package com.MuleTrace.backend.websocket;
 
 public class FraudAlertEvent {
 

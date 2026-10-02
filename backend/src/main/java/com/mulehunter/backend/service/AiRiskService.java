@@ -1,8 +1,8 @@
-package com.mulehunter.backend.service;
+package com.MuleTrace.backend.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mulehunter.backend.DTO.MetricsResponse;
-import com.mulehunter.backend.model.AiRiskResult;
+import com.MuleTrace.backend.DTO.MetricsResponse;
+import com.MuleTrace.backend.model.AiRiskResult;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;

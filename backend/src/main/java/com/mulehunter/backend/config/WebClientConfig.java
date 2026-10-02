@@ -1,4 +1,4 @@
-package com.mulehunter.backend.config;
+package com.MuleTrace.backend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

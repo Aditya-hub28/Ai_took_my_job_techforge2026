@@ -1,11 +1,11 @@
-package com.mulehunter.backend.DTO;
+package com.MuleTrace.backend.DTO;
 
 import java.util.List;
 
-import com.mulehunter.backend.model.AnomalyScore;
-import com.mulehunter.backend.model.FraudExplanation;
-import com.mulehunter.backend.model.NodeEnriched;
-import com.mulehunter.backend.model.ShapExplanation;
+import com.MuleTrace.backend.model.AnomalyScore;
+import com.MuleTrace.backend.model.FraudExplanation;
+import com.MuleTrace.backend.model.NodeEnriched;
+import com.MuleTrace.backend.model.ShapExplanation;
 
 public class NodeAnalyticsResponse {
 

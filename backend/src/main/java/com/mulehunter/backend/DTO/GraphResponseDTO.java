@@ -1,4 +1,4 @@
-package com.mulehunter.backend.DTO;
+package com.MuleTrace.backend.DTO;
 
 import java.util.List;
 

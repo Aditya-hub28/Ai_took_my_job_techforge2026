@@ -1,4 +1,4 @@
-package com.mulehunter.backend.DTO;
+package com.MuleTrace.backend.DTO;
 
 /**
  * Step 7 — Structured ML Scoring Request

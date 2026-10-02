@@ -1,8 +1,8 @@
-package com.mulehunter.backend.controller;
+package com.MuleTrace.backend.controller;
 
-import com.mulehunter.backend.model.Transaction;
-import com.mulehunter.backend.model.TransactionRequest;
-import com.mulehunter.backend.service.TransactionService;
+import com.MuleTrace.backend.model.Transaction;
+import com.MuleTrace.backend.model.TransactionRequest;
+import com.MuleTrace.backend.service.TransactionService;
 
 // FIX: was org.springframework.http.server.reactive.ServerHttpRequest (WebFlux interface)
 // The backend runs on Spring MVC (Tomcat / DispatcherServlet), NOT on WebFlux (Netty).

@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react"; 
 import LogoutButton from "./LogoutButton";
@@ -33,15 +32,23 @@ const Navbar = () => {
             {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
 
-          <div className="flex items-center shrink-0">
-            <Image 
-              src="/logo.png" 
-              alt="Logo" 
-              width={130}
-              height={35}
-              className="object-contain" 
-              priority
-            />
+          <div className="flex items-center gap-2 shrink-0">
+              <span style={{
+                background: "linear-gradient(135deg, #CAFF33 0%, #a3e635 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                fontWeight: 800,
+                fontSize: "1.25rem",
+                letterSpacing: "0.05em",
+                fontFamily: "monospace",
+              }}>MULE</span>
+              <span style={{
+                color: "#ffffff",
+                fontWeight: 700,
+                fontSize: "1.25rem",
+                letterSpacing: "0.05em",
+                fontFamily: "monospace",
+              }}>TRACE</span>
           </div>
         </div>
 

@@ -1,4 +1,4 @@
-package com.mulehunter.backend;
+package com.MuleTrace.backend;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @EnableScheduling
 @SpringBootApplication
-@EnableMongoRepositories(basePackages = "com.mulehunter.backend.repository")
+@EnableMongoRepositories(basePackages = "com.MuleTrace.backend.repository")
 public class BackendApplication {
 
 	public static void main(String[] args) {

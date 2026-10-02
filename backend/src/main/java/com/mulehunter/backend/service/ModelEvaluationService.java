@@ -1,13 +1,13 @@
-package com.mulehunter.backend.service;
+package com.MuleTrace.backend.service;
 
-import com.mulehunter.backend.DTO.MetricsResponse;
-import com.mulehunter.backend.model.ModelPerformanceMetrics;
-import com.mulehunter.backend.model.Nodes;
-import com.mulehunter.backend.model.Transaction;
-import com.mulehunter.backend.repository.ModelMetricsRepository;
-import com.mulehunter.backend.repository.TransactionRepository;
-import com.mulehunter.backend.repository.NodesRepository;
-import com.mulehunter.backend.util.ConfusionMatrix;
+import com.MuleTrace.backend.DTO.MetricsResponse;
+import com.MuleTrace.backend.model.ModelPerformanceMetrics;
+import com.MuleTrace.backend.model.Nodes;
+import com.MuleTrace.backend.model.Transaction;
+import com.MuleTrace.backend.repository.ModelMetricsRepository;
+import com.MuleTrace.backend.repository.TransactionRepository;
+import com.MuleTrace.backend.repository.NodesRepository;
+import com.MuleTrace.backend.util.ConfusionMatrix;
 
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -146,7 +146,7 @@ public class ModelEvaluationService {
                                     double gnn = gnnRaw != null ? gnnRaw : 0.0;
                                     double eif = eifRaw != null ? eifRaw : 0.0;
 
-                                    // alertixAI "WINNING" ENSEMBLE (Targeting FPR < 1.0% for UPI Blocking)
+                                    // MuleTrace "WINNING" ENSEMBLE (Targeting FPR < 1.0% for UPI Blocking)
                                     // Balanced for Industry Standards: Surgical Precision + High Recall
                                     boolean gnnIsStale = (gnnRaw != null && Math.abs(gnnRaw - 0.89) < 0.01); 
                                     double risk = eif;
@@ -216,7 +216,7 @@ public class ModelEvaluationService {
 
                                 // ── Persist Result ──────────────────────────────────────────
                                 ModelPerformanceMetrics metrics = new ModelPerformanceMetrics();
-                                metrics.setModelName("MuleHunter");
+                                metrics.setModelName("MuleTrace");
                                 metrics.setModelVersion(rescore ? "v2-optimized" : "v1-audit");
                                 metrics.setEvaluationStart(Instant.now());
                                 metrics.setEvaluationEnd(Instant.now());

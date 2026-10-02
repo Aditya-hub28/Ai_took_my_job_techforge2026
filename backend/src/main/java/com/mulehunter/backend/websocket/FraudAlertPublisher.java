@@ -1,4 +1,4 @@
-package com.mulehunter.backend.websocket;
+package com.MuleTrace.backend.websocket;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;

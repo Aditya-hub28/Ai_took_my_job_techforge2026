@@ -1,4 +1,4 @@
-package com.mulehunter.backend.service;
+package com.MuleTrace.backend.service;
 
 import org.springframework.stereotype.Service;
 import java.util.*;

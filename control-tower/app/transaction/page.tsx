@@ -446,7 +446,7 @@ es.onerror = (err) => {
             {/* CONTENT */}
             <div className="flex-1 overflow-y-auto space-y-4 pr-2">
               
-              {/* TAB 1: RUPALI'S PART */}
+              {/* TAB 1: TRANSACTION SCANNER */}
               {activeTab === "unsupervised" && (
                 <VisualAnalyticsCard
                   vaStatus={vaStatus}

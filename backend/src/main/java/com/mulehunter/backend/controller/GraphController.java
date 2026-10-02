@@ -1,4 +1,4 @@
-package com.mulehunter.backend.controller;
+package com.MuleTrace.backend.controller;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -16,10 +16,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.mulehunter.backend.DTO.GraphLinkDTO;
-import com.mulehunter.backend.DTO.GraphNodeDTO;
-import com.mulehunter.backend.DTO.GraphNodeDetailDTO;
-import com.mulehunter.backend.DTO.GraphResponseDTO;
+import com.MuleTrace.backend.DTO.GraphLinkDTO;
+import com.MuleTrace.backend.DTO.GraphNodeDTO;
+import com.MuleTrace.backend.DTO.GraphNodeDetailDTO;
+import com.MuleTrace.backend.DTO.GraphResponseDTO;
 
 import reactor.core.publisher.Mono;
 
