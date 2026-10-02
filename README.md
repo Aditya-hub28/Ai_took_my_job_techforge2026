@@ -346,7 +346,7 @@ The Control Tower user interface is divided into dedicated forensic modules acce
 
 ### Acknowledgements & Hackathon Details
 - **Hackathon:** TECHFORGE 2026
-- **Organizers:** Thadomal Shahani Engineering College (TSEC) ACM Student Chapter & CodeCrafters TSEC
+- **Organizers:** Thadomal Shyamnarayan Engineering College (TSEC) ACM Student Chapter & CodeCrafters TSEC
 - **Collaborator Handles:**
   - [TSEC ACM (`acmco`)](https://github.com/acmco)
   - [CodeCrafters (`codecrafters-tsec`)](https://github.com/codecrafters-tsec)
