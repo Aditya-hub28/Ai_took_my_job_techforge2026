@@ -28,6 +28,9 @@ export interface GraphNode {
   x?: number;
   y?: number;
   z?: number;
+  fx?: number;
+  fy?: number;
+  fz?: number;
   // internal – set by force graph after simulation
   __threeObj?: THREE.Object3D;
 }
@@ -178,8 +181,12 @@ export default function FraudGraph3D({
 
   // ── UI state ──
   const [activeNodeId, setActiveNodeId] = useState<string | number | null>(
-    null
+    selectedNode?.id ?? null
   );
+
+  useEffect(() => {
+    setActiveNodeId(selectedNode?.id ?? null);
+  }, [selectedNode]);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [viewMode, setViewMode] = useState<"all" | "fraud" | "rings">("all");
   const [internalShowOnlyFraud, setInternalShowOnlyFraud] = useState(false);
@@ -549,12 +556,27 @@ console.log("TOTAL NODES:", data.nodes.length);
       });
     }
 
-    // Always ensure the selected or searched node is included in visible graph
+    // Always ensure the selected node and its direct connected neighbors are included in visible graph
     if (activeNodeId) {
       const activeObj = rawGraph.nodes.find((n) => String(n.id) === String(activeNodeId));
       if (activeObj && !capped.some((n) => String(n.id) === String(activeNodeId))) {
         capped.push(activeObj);
       }
+      rawGraph.links.forEach((l) => {
+        const s = String(resolveId(l.source));
+        const t = String(resolveId(l.target));
+        if (s === String(activeNodeId)) {
+          const neighbor = rawGraph.nodes.find((n) => String(n.id) === t);
+          if (neighbor && !capped.some((c) => String(c.id) === t)) {
+            capped.push(neighbor);
+          }
+        } else if (t === String(activeNodeId)) {
+          const neighbor = rawGraph.nodes.find((n) => String(n.id) === s);
+          if (neighbor && !capped.some((c) => String(c.id) === s)) {
+            capped.push(neighbor);
+          }
+        }
+      });
     }
 
     const cappedIds = new Set(capped.map((n) => String(n.id)));
@@ -933,14 +955,28 @@ console.log("TOTAL NODES:", data.nodes.length);
       const color = isTourMember ? new THREE.Color("#facc15") : riskColor(score);
       const radius = nodeRadius(node) * (isTourMember ? 1.25 : 1);
 
-      // Opacity logic: when tour is running, isolate the active syndicate
+      // Opacity & emissive logic: when a node is selected, keep it and connected neighbors dark/bold, fade everything else
       let opacity = 1;
+      let emissiveIntensity = node.is_anomalous ? 1.2 : 0.05;
+
       if (tourActive) {
-        opacity = isTourMember ? 1 : 0.12;
+        opacity = isTourMember ? 1 : 0.10;
+        emissiveIntensity = isTourMember ? 0.9 : 0;
       } else if (activeNodeId) {
-        opacity = isActive ? 1 : isNeighbor ? 0.85 : 0.22;
+        if (isActive) {
+          opacity = 1.0;
+          emissiveIntensity = 2.2; // Extra dark / luminous / bold for selected node
+        } else if (isNeighbor) {
+          opacity = 0.92;
+          emissiveIntensity = node.is_anomalous ? 1.4 : 0.6; // Bold saturated color for connected neighbors
+        } else {
+          // Baki sab faint!
+          opacity = 0.04;
+          emissiveIntensity = 0; // Turn off glow completely so it fades out into the background
+        }
       } else if (hasSearch) {
-        opacity = matchesSearch ? 1 : 0.15;
+        opacity = matchesSearch ? 1 : 0.06;
+        emissiveIntensity = matchesSearch ? 1.8 : 0;
       }
 
       const group = new THREE.Group();
@@ -955,7 +991,7 @@ console.log("TOTAL NODES:", data.nodes.length);
           roughness: 0.25,
           metalness: 0.3,
           emissive: color,
-          emissiveIntensity: node.is_anomalous ? 1.2 : (isTourMember ? 0.6 : 0.05),
+          emissiveIntensity,
         })
       );
       group.add(sphere);
@@ -1099,11 +1135,14 @@ console.log("TOTAL NODES:", data.nodes.length);
         return "rgba(34, 197, 94, 0.60)";                   // Rich luminous translucent emerald green
       }
 
+      // When a node is selected: connected edges become dark, solid, and bold; all others become faint
       const connected = s === String(activeNodeId) || t === String(activeNodeId);
-      if (!connected) return "rgba(255,255,255,0.03)";
-      if (isFraudLink) return "#ef4444";
-      if (isMixedLink) return "#f59e0b";
-      return "#22c55e"; // Bright green if active normal link
+      if (!connected) return "rgba(255, 255, 255, 0.01)"; // Baki sab faint!
+
+      // Dark / bold / solid colors for connected edges
+      if (isFraudLink) return "#dc2626"; // Deep dark bold red
+      if (isMixedLink) return "#d97706"; // Deep dark bold amber
+      return "#16a34a";                  // Deep dark bold emerald green
     },
     [activeNodeId, visibleGraph, tourActive, tourStep, tourRings]
   );
@@ -1116,8 +1155,9 @@ console.log("TOTAL NODES:", data.nodes.length);
       if (tourActive && tourRings[tourStep]) {
         const mSet = new Set(tourRings[tourStep].members.map(String));
         if (mSet.has(s) && mSet.has(t)) {
-          return 3.2;
+          return 3.5;
         }
+        return 0.04;
       }
 
       const sNode =
@@ -1139,7 +1179,7 @@ console.log("TOTAL NODES:", data.nodes.length);
         if (isMixedLink) return 1.8;
         return 1.5; // Broader translucent green edges
       }
-      return s === String(activeNodeId) || t === String(activeNodeId) ? 3.0 : 0.08;
+      return s === String(activeNodeId) || t === String(activeNodeId) ? 4.2 : 0.04;
     },
     [activeNodeId, visibleGraph, tourActive, tourStep, tourRings]
   );
@@ -1623,8 +1663,8 @@ console.log("TOTAL NODES:", data.nodes.length);
           if (!activeNodeId && !tourActive) return 0;
           const s = String(resolveId(link.source));
           const t = String(resolveId(link.target));
-          if (activeNodeId && (s === String(activeNodeId) || t === String(activeNodeId))) return 3.5;
-          if (tourActive) return 3;
+          if (activeNodeId && (s === String(activeNodeId) || t === String(activeNodeId))) return 4.5;
+          if (tourActive) return 3.5;
           return 0;
         }}
         linkDirectionalArrowRelPos={0.95}
@@ -1633,12 +1673,17 @@ console.log("TOTAL NODES:", data.nodes.length);
           if (!activeNodeId && !tourActive) return 0;
           const s = String(resolveId(link.source));
           const t = String(resolveId(link.target));
-          if (activeNodeId && (s === String(activeNodeId) || t === String(activeNodeId))) return 3;
+          if (activeNodeId && (s === String(activeNodeId) || t === String(activeNodeId))) return 4;
           if (tourActive) return 2;
           return 0;
         }}
-        linkDirectionalParticleWidth={1.8}
-        linkDirectionalParticleSpeed={0.006}
+        linkDirectionalParticleWidth={(link: GraphLink) => {
+          const s = String(resolveId(link.source));
+          const t = String(resolveId(link.target));
+          if (activeNodeId && (s === String(activeNodeId) || t === String(activeNodeId))) return 2.8;
+          return 1.8;
+        }}
+        linkDirectionalParticleSpeed={0.008}
         nodeLabel={getNodeLabel}
         nodeThreeObject={buildNodeObject}
         nodeThreeObjectExtend={false}
