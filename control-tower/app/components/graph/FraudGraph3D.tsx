@@ -181,11 +181,11 @@ export default function FraudGraph3D({
 
   // ── UI state ──
   const [activeNodeId, setActiveNodeId] = useState<string | number | null>(
-    selectedNode?.id ?? null
+    selectedNode?.id ? String(selectedNode.id) : null
   );
 
   useEffect(() => {
-    setActiveNodeId(selectedNode?.id ?? null);
+    setActiveNodeId(selectedNode?.id ? String(selectedNode.id) : null);
   }, [selectedNode]);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [viewMode, setViewMode] = useState<"all" | "fraud" | "rings">("all");
@@ -290,7 +290,7 @@ console.log("TOTAL NODES:", data.nodes.length);
              isAnom ? "MULE" : "NORMAL");
 
           return {
-            id: n.nodeId ?? n.node_id ?? n.id,
+            id: String(n.nodeId ?? n.node_id ?? n.id),
             is_anomalous: isAnom,
             anomalyScore: Math.min(1, Math.max(0, score)),
             volume: n.volume ?? n.txCount ?? n.tx_count ?? n.transactionCount ?? 0,
@@ -306,6 +306,54 @@ console.log("TOTAL NODES:", data.nodes.length);
           };
         });
 
+        // Deduplicate and merge nodes by ID so exactly one canonical object exists in 3D scene
+        const nodeMap = new Map<string, GraphNode>();
+        for (const n of nodes) {
+          const sid = String(n.id);
+          const existing = nodeMap.get(sid);
+          if (!existing) {
+            nodeMap.set(sid, { ...n });
+          } else {
+            const isAnom = existing.is_anomalous || n.is_anomalous;
+            const score = Math.max(existing.anomalyScore ?? 0, n.anomalyScore ?? 0);
+            const volume = Math.max(existing.volume ?? 0, n.volume ?? 0);
+            const ringVolume = Math.max(existing.ringVolume ?? 0, n.ringVolume ?? 0);
+            const totalIncoming = Math.max(existing.totalIncoming ?? 0, n.totalIncoming ?? 0);
+            const totalOutgoing = Math.max(existing.totalOutgoing ?? 0, n.totalOutgoing ?? 0);
+            const pagerank = Math.max(existing.pagerank ?? 0, n.pagerank ?? 0);
+            const combinedRingIds = Array.from(
+              new Set([...(existing.ringIds ?? []), ...(n.ringIds ?? [])])
+            );
+            const role: GraphNode["role"] =
+              existing.role === "HUB" || n.role === "HUB"
+                ? "HUB"
+                : existing.role === "BRIDGE" || n.role === "BRIDGE"
+                ? "BRIDGE"
+                : isAnom
+                ? "MULE"
+                : "NORMAL";
+            const shapFactors =
+              existing.shapFactors && existing.shapFactors.length > 0
+                ? existing.shapFactors
+                : n.shapFactors ?? [];
+
+            nodeMap.set(sid, {
+              ...existing,
+              is_anomalous: isAnom,
+              anomalyScore: score,
+              volume,
+              ringVolume,
+              totalIncoming,
+              totalOutgoing,
+              pagerank,
+              ringIds: combinedRingIds,
+              role,
+              shapFactors,
+            });
+          }
+        }
+        const uniqueNodes = Array.from(nodeMap.values());
+
         const links: GraphLink[] = (data.links ?? data.edges ?? [])
           .filter((l: any) => (l.source ?? l.from) && (l.target ?? l.to))
           .map((l: any) => ({
@@ -313,21 +361,21 @@ console.log("TOTAL NODES:", data.nodes.length);
             target: String(l.target ?? l.to ?? l.targetId),
           }));
 
-        console.log(`[MuleTrace] Mapped: ${nodes.length} nodes, ${nodes.filter(n=>n.is_anomalous).length} fraud, ${links.length} links`);
+        console.log(`[MuleTrace] Mapped: ${uniqueNodes.length} nodes, ${uniqueNodes.filter(n=>n.is_anomalous).length} fraud, ${links.length} links`);
 
-        setRawGraph({ nodes, links });
-        const fraudCount = nodes.filter((n) => n.is_anomalous).length;
+        setRawGraph({ nodes: uniqueNodes, links });
+        const fraudCount = uniqueNodes.filter((n) => n.is_anomalous).length;
         const distinctRings = new Set<number>();
-        nodes.forEach(n => (n.ringIds ?? []).forEach(r => distinctRings.add(r)));
+        uniqueNodes.forEach(n => (n.ringIds ?? []).forEach(r => distinctRings.add(r)));
         const ringCount = distinctRings.size;
         const newStats = {
-          totalNodes: nodes.length,
+          totalNodes: uniqueNodes.length,
           fraudNodes: fraudCount,
           totalEdges: links.length,
           rings: ringCount,
         };
         setStats(newStats);
-        onStatsUpdate?.({ totalNodes: nodes.length, fraudNodes: fraudCount, rings: ringCount });
+        onStatsUpdate?.({ totalNodes: uniqueNodes.length, fraudNodes: fraudCount, rings: ringCount });
 
         // ── Populate Detective Tour with authentic syndicates from dataset ──
         const ringMap = new Map<number, GraphNode[]>();
@@ -556,21 +604,22 @@ console.log("TOTAL NODES:", data.nodes.length);
       });
     }
 
-    // Always ensure the selected node and its direct connected neighbors are included in visible graph
+    // Always ensure the selected or searched node and its direct counterparties are included in visible graph
     if (activeNodeId) {
-      const activeObj = rawGraph.nodes.find((n) => String(n.id) === String(activeNodeId));
-      if (activeObj && !capped.some((n) => String(n.id) === String(activeNodeId))) {
+      const activeStr = String(activeNodeId);
+      const activeObj = rawGraph.nodes.find((n) => String(n.id) === activeStr);
+      if (activeObj && !capped.some((n) => String(n.id) === activeStr)) {
         capped.push(activeObj);
       }
       rawGraph.links.forEach((l) => {
         const s = String(resolveId(l.source));
         const t = String(resolveId(l.target));
-        if (s === String(activeNodeId)) {
+        if (s === activeStr) {
           const neighbor = rawGraph.nodes.find((n) => String(n.id) === t);
           if (neighbor && !capped.some((c) => String(c.id) === t)) {
             capped.push(neighbor);
           }
-        } else if (t === String(activeNodeId)) {
+        } else if (t === activeStr) {
           const neighbor = rawGraph.nodes.find((n) => String(n.id) === s);
           if (neighbor && !capped.some((c) => String(c.id) === s)) {
             capped.push(neighbor);
@@ -743,10 +792,11 @@ console.log("TOTAL NODES:", data.nodes.length);
 
     // If an active node is selected, guarantee all of its genuine dataset links are included
     if (activeNodeId) {
+      const activeStr = String(activeNodeId);
       allGenuineLinks.forEach((l) => {
         const s = String(resolveId(l.source));
         const t = String(resolveId(l.target));
-        if (s === String(activeNodeId) || t === String(activeNodeId)) {
+        if (s === activeStr || t === activeStr) {
           if (!selectedGenuineLinks.some((sl) => sl === l)) {
             selectedGenuineLinks.push(l);
           }
@@ -762,12 +812,13 @@ console.log("TOTAL NODES:", data.nodes.length);
     if (!activeNodeId || !visibleGraph)
       return { neighborSet: new Set() };
 
-    const neighborSet = new Set<string | number>([activeNodeId]);
+    const activeStr = String(activeNodeId);
+    const neighborSet = new Set<string | number>([activeStr]);
     visibleGraph.links.forEach((link) => {
-      const s = resolveId(link.source);
-      const t = resolveId(link.target);
-      if (s === activeNodeId) neighborSet.add(t);
-      if (t === activeNodeId) neighborSet.add(s);
+      const s = String(resolveId(link.source));
+      const t = String(resolveId(link.target));
+      if (s === activeStr) neighborSet.add(t);
+      if (t === activeStr) neighborSet.add(s);
     });
 
     return { neighborSet };
@@ -941,15 +992,19 @@ console.log("TOTAL NODES:", data.nodes.length);
   // ── Node object builder ──
   const buildNodeObject = useCallback(
     (node: GraphNode): THREE.Group => {
-      const isActive = node.id === activeNodeId;
-      const isNeighbor = focusData.neighborSet.has(node.id);
+      const activeStr = activeNodeId != null ? String(activeNodeId) : null;
+      const nodeStr = String(node.id);
+      const isActive = activeStr !== null && nodeStr === activeStr;
+      const isNeighbor =
+        activeStr !== null &&
+        (focusData.neighborSet.has(nodeStr) || focusData.neighborSet.has(node.id));
       const hasSearch = searchId.trim() !== "";
-      const matchesSearch = String(node.id).includes(searchId.trim());
+      const matchesSearch = nodeStr.includes(searchId.trim());
 
       // Tour highlight detection
       const isTourMember =
         tourActive &&
-        tourRings[tourStep]?.members.some((m) => String(m) === String(node.id));
+        tourRings[tourStep]?.members.some((m) => String(m) === nodeStr);
 
       const score = node.anomalyScore ?? 0;
       const color = isTourMember ? new THREE.Color("#facc15") : riskColor(score);
@@ -962,13 +1017,13 @@ console.log("TOTAL NODES:", data.nodes.length);
       if (tourActive) {
         opacity = isTourMember ? 1 : 0.10;
         emissiveIntensity = isTourMember ? 0.9 : 0;
-      } else if (activeNodeId) {
+      } else if (activeStr) {
         if (isActive) {
           opacity = 1.0;
           emissiveIntensity = 2.2; // Extra dark / luminous / bold for selected node
         } else if (isNeighbor) {
-          opacity = 0.92;
-          emissiveIntensity = node.is_anomalous ? 1.4 : 0.6; // Bold saturated color for connected neighbors
+          opacity = 0.95;
+          emissiveIntensity = node.is_anomalous ? 1.4 : 0.75; // Bold saturated color for connected neighbors
         } else {
           // Baki sab faint!
           opacity = 0.04;
@@ -1103,6 +1158,7 @@ console.log("TOTAL NODES:", data.nodes.length);
     (link: GraphLink): string => {
       const s = String(resolveId(link.source));
       const t = String(resolveId(link.target));
+      const activeStr = activeNodeId != null ? String(activeNodeId) : null;
 
       // Tour active: highlight ring internal edges in gold, dim everything else
       if (tourActive && tourRings[tourStep]) {
@@ -1110,7 +1166,7 @@ console.log("TOTAL NODES:", data.nodes.length);
         if (mSet.has(s) && mSet.has(t)) {
           return "#facc15";
         }
-        return "rgba(255,255,255,0.02)";
+        return "rgba(255,255,255,0.01)";
       }
 
       const sNode =
@@ -1128,15 +1184,15 @@ console.log("TOTAL NODES:", data.nodes.length);
       const isFraudLink = sIsFraud && tIsFraud;
       const isMixedLink = (sIsFraud && !tIsFraud) || (!sIsFraud && tIsFraud);
 
-      if (!activeNodeId) {
+      if (!activeStr) {
         // Clearly visible, rich translucent red for fraud rings and translucent green for safe normal users
         if (isFraudLink) return "rgba(239, 68, 68, 0.85)"; // Vibrant glowing red
         if (isMixedLink) return "rgba(245, 158, 11, 0.65)"; // Translucent warm amber
         return "rgba(34, 197, 94, 0.60)";                   // Rich luminous translucent emerald green
       }
 
-      // When a node is selected: connected edges become dark, solid, and bold; all others become faint
-      const connected = s === String(activeNodeId) || t === String(activeNodeId);
+      // When a node is selected: ONLY connected edges are dark, solid, and bold; all others become faint
+      const connected = s === activeStr || t === activeStr;
       if (!connected) return "rgba(255, 255, 255, 0.01)"; // Baki sab faint!
 
       // Dark / bold / solid colors for connected edges
@@ -1151,6 +1207,7 @@ console.log("TOTAL NODES:", data.nodes.length);
     (link: GraphLink): number => {
       const s = String(resolveId(link.source));
       const t = String(resolveId(link.target));
+      const activeStr = activeNodeId != null ? String(activeNodeId) : null;
 
       if (tourActive && tourRings[tourStep]) {
         const mSet = new Set(tourRings[tourStep].members.map(String));
@@ -1174,12 +1231,12 @@ console.log("TOTAL NODES:", data.nodes.length);
       const isFraudLink = sIsFraud && tIsFraud;
       const isMixedLink = (sIsFraud && !tIsFraud) || (!sIsFraud && tIsFraud);
 
-      if (!activeNodeId) {
+      if (!activeStr) {
         if (isFraudLink) return 2.2;
         if (isMixedLink) return 1.8;
         return 1.5; // Broader translucent green edges
       }
-      return s === String(activeNodeId) || t === String(activeNodeId) ? 4.2 : 0.04;
+      return s === activeStr || t === activeStr ? 4.2 : 0.04;
     },
     [activeNodeId, visibleGraph, tourActive, tourStep, tourRings]
   );
@@ -1224,8 +1281,9 @@ console.log("TOTAL NODES:", data.nodes.length);
   // ── Handlers ──
   const handleNodeClick = useCallback(
     (node: GraphNode) => {
+      const nodeId = String(node.id);
+      setActiveNodeId(nodeId);
       onNodeSelect(node);
-      setActiveNodeId(node.id);
       focusCameraOnNode(node);
     },
     [onNodeSelect, focusCameraOnNode]
@@ -1663,7 +1721,8 @@ console.log("TOTAL NODES:", data.nodes.length);
           if (!activeNodeId && !tourActive) return 0;
           const s = String(resolveId(link.source));
           const t = String(resolveId(link.target));
-          if (activeNodeId && (s === String(activeNodeId) || t === String(activeNodeId))) return 4.5;
+          const activeStr = activeNodeId ? String(activeNodeId) : null;
+          if (activeStr && (s === activeStr || t === activeStr)) return 4.5;
           if (tourActive) return 3.5;
           return 0;
         }}
@@ -1673,14 +1732,16 @@ console.log("TOTAL NODES:", data.nodes.length);
           if (!activeNodeId && !tourActive) return 0;
           const s = String(resolveId(link.source));
           const t = String(resolveId(link.target));
-          if (activeNodeId && (s === String(activeNodeId) || t === String(activeNodeId))) return 4;
+          const activeStr = activeNodeId ? String(activeNodeId) : null;
+          if (activeStr && (s === activeStr || t === activeStr)) return 4;
           if (tourActive) return 2;
           return 0;
         }}
         linkDirectionalParticleWidth={(link: GraphLink) => {
           const s = String(resolveId(link.source));
           const t = String(resolveId(link.target));
-          if (activeNodeId && (s === String(activeNodeId) || t === String(activeNodeId))) return 2.8;
+          const activeStr = activeNodeId ? String(activeNodeId) : null;
+          if (activeStr && (s === activeStr || t === activeStr)) return 2.8;
           return 1.8;
         }}
         linkDirectionalParticleSpeed={0.008}
